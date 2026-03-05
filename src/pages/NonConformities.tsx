@@ -82,6 +82,7 @@ const NonConformities = () => {
     type: 'divergencia_quantidade' as NCType,
     product_id: '', location_id: '', lot_number: '',
     description: '', expected_value: '', actual_value: '',
+    damage_classification: '',
   });
 
   const createNC = useMutation({
