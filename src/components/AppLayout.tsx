@@ -19,7 +19,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
     ...(isAdmin ? [{ to: '/admin/usuarios', icon: Users, label: 'Usuários' }] : []),
   ];
 
-  const currentLabel = navItems.find(i => i.to === location.pathname)?.label || 'Gypsum WMS';
+  const currentLabel = navItems.find(i => i.to === location.pathname)?.label || 'StockFlow';
 
   return (
     <div className="flex h-screen overflow-hidden">
