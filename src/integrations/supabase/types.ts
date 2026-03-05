@@ -167,6 +167,9 @@ export type Database = {
           actual_value: string | null
           corrective_action: string | null
           created_at: string
+          damage_classification:
+            | Database["public"]["Enums"]["damage_classification"]
+            | null
           description: string
           expected_value: string | null
           id: string
@@ -184,6 +187,9 @@ export type Database = {
           actual_value?: string | null
           corrective_action?: string | null
           created_at?: string
+          damage_classification?:
+            | Database["public"]["Enums"]["damage_classification"]
+            | null
           description: string
           expected_value?: string | null
           id?: string
@@ -201,6 +207,9 @@ export type Database = {
           actual_value?: string | null
           corrective_action?: string | null
           created_at?: string
+          damage_classification?:
+            | Database["public"]["Enums"]["damage_classification"]
+            | null
           description?: string
           expected_value?: string | null
           id?: string
@@ -323,6 +332,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      damage_classification: "pav" | "if"
       movement_type:
         | "entrada"
         | "saida"
@@ -482,6 +492,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      damage_classification: ["pav", "if"],
       movement_type: [
         "entrada",
         "saida",

@@ -39,6 +39,11 @@ const STATUS_LABELS: Record<NCStatus, string> = {
   aberta: 'Aberta', em_analise: 'Em Análise', resolvida: 'Resolvida', encerrada: 'Encerrada',
 };
 
+const DAMAGE_LABELS: Record<string, string> = {
+  pav: 'PAV – Venda c/ Desconto',
+  if: 'IF – Descarte',
+};
+
 const NonConformities = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -77,6 +82,7 @@ const NonConformities = () => {
     type: 'divergencia_quantidade' as NCType,
     product_id: '', location_id: '', lot_number: '',
     description: '', expected_value: '', actual_value: '',
+    damage_classification: '',
   });
 
   const createNC = useMutation({
@@ -90,6 +96,7 @@ const NonConformities = () => {
         expected_value: form.expected_value || null,
         actual_value: form.actual_value || null,
         reported_by: user!.id,
+        damage_classification: form.type === 'produto_avariado' && form.damage_classification ? form.damage_classification as any : null,
       });
       if (error) throw error;
     },
@@ -98,7 +105,7 @@ const NonConformities = () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard-nc'] });
       toast({ title: 'NC registrada!' });
       setDialogOpen(false);
-      setForm({ type: 'divergencia_quantidade', product_id: '', location_id: '', lot_number: '', description: '', expected_value: '', actual_value: '' });
+      setForm({ type: 'divergencia_quantidade', product_id: '', location_id: '', lot_number: '', description: '', expected_value: '', actual_value: '', damage_classification: '' });
     },
     onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
   });
@@ -179,6 +186,18 @@ const NonConformities = () => {
                 <Label>Descrição *</Label>
                 <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} required rows={3} placeholder="Descreva a não conformidade..." />
               </div>
+              {form.type === 'produto_avariado' && (
+                <div className="space-y-2">
+                  <Label>Classificação da Avaria *</Label>
+                  <Select value={form.damage_classification} onValueChange={v => setForm(f => ({ ...f, damage_classification: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pav">PAV – Produto p/ venda c/ desconto</SelectItem>
+                      <SelectItem value="if">IF – Produto p/ descarte</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>Valor Esperado</Label>
@@ -206,15 +225,16 @@ const NonConformities = () => {
               <TableHead>Endereço</TableHead>
               <TableHead>Esperado</TableHead>
               <TableHead>Encontrado</TableHead>
+              <TableHead>Classificação</TableHead>
               <TableHead>Descrição</TableHead>
               <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Nenhuma NC encontrada</TableCell></TableRow>
+              <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">Nenhuma NC encontrada</TableCell></TableRow>
             ) : (
               filtered.map(nc => (
                 <TableRow key={nc.id}>
@@ -229,6 +249,13 @@ const NonConformities = () => {
                   <TableCell className="font-mono text-xs">{nc.locations?.full_address || '—'}</TableCell>
                   <TableCell className="text-xs">{nc.expected_value || '—'}</TableCell>
                   <TableCell className="text-xs">{nc.actual_value || '—'}</TableCell>
+                  <TableCell className="text-xs">
+                    {(nc as any).damage_classification ? (
+                      <span className={`px-2 py-0.5 rounded-full font-medium ${(nc as any).damage_classification === 'pav' ? 'bg-warning/10 text-warning' : 'bg-destructive/10 text-destructive'}`}>
+                        {DAMAGE_LABELS[(nc as any).damage_classification]}
+                      </span>
+                    ) : '—'}
+                  </TableCell>
                   <TableCell className="text-xs max-w-[200px] truncate">{nc.description}</TableCell>
                   <TableCell>
                     {(nc.status === 'aberta' || nc.status === 'em_analise') && (
