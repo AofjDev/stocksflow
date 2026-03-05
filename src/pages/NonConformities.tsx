@@ -96,6 +96,7 @@ const NonConformities = () => {
         expected_value: form.expected_value || null,
         actual_value: form.actual_value || null,
         reported_by: user!.id,
+        damage_classification: form.type === 'produto_avariado' && form.damage_classification ? form.damage_classification as any : null,
       });
       if (error) throw error;
     },
