@@ -36,35 +36,50 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-    setProfile(data);
+  const fetchProfile = async (authUser: User) => {
+    const fallbackName = authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'Usuário';
+
+    await supabase.rpc('bootstrap_current_user', { _full_name: fallbackName });
+
+    const [{ data: profileData }, { data: rolesData }] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', authUser.id)
+        .maybeSingle(),
+      supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', authUser.id),
+    ]);
+
+    setProfile(profileData as Profile | null);
+    setIsAdmin((rolesData || []).some((r: any) => r.role === 'admin'));
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session?.user) {
-        // Use setTimeout to avoid Supabase auth deadlock
-        setTimeout(() => fetchProfile(session.user.id), 0);
+    const hydrateSession = async (currentSession: Session | null) => {
+      setSession(currentSession);
+
+      if (currentSession?.user) {
+        await fetchProfile(currentSession.user);
       } else {
         setProfile(null);
+        setIsAdmin(false);
       }
+
       setLoading(false);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      void hydrateSession(currentSession);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      }
-      setLoading(false);
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      void hydrateSession(currentSession);
     });
 
     return () => subscription.unsubscribe();
@@ -73,11 +88,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     await supabase.auth.signOut();
     setProfile(null);
+    setIsAdmin(false);
   };
 
   const refetchProfile = async () => {
     if (session?.user) {
-      await fetchProfile(session.user.id);
+      await fetchProfile(session.user);
     }
   };
 
@@ -88,7 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       profile,
       loading,
       isApproved: profile?.approved ?? false,
-      isAdmin: profile?.is_admin ?? false,
+      isAdmin,
       signOut,
       refetchProfile,
     }}>
@@ -98,3 +114,4 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+
