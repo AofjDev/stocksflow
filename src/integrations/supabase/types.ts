@@ -14,7 +14,301 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      inventory: {
+        Row: {
+          expiry_date: string | null
+          id: string
+          location_id: string
+          lot_number: string | null
+          manufacturing_date: string | null
+          product_id: string
+          quantity: number
+          received_at: string
+          updated_at: string
+        }
+        Insert: {
+          expiry_date?: string | null
+          id?: string
+          location_id: string
+          lot_number?: string | null
+          manufacturing_date?: string | null
+          product_id: string
+          quantity?: number
+          received_at?: string
+          updated_at?: string
+        }
+        Update: {
+          expiry_date?: string | null
+          id?: string
+          location_id?: string
+          lot_number?: string | null
+          manufacturing_date?: string | null
+          product_id?: string
+          quantity?: number
+          received_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locations: {
+        Row: {
+          active: boolean
+          area: string
+          capacity: number
+          created_at: string
+          full_address: string | null
+          id: string
+          location_type: string
+          position: string
+        }
+        Insert: {
+          active?: boolean
+          area: string
+          capacity?: number
+          created_at?: string
+          full_address?: string | null
+          id?: string
+          location_type?: string
+          position: string
+        }
+        Update: {
+          active?: boolean
+          area?: string
+          capacity?: number
+          created_at?: string
+          full_address?: string | null
+          id?: string
+          location_type?: string
+          position?: string
+        }
+        Relationships: []
+      }
+      movements: {
+        Row: {
+          created_at: string
+          from_location_id: string | null
+          id: string
+          lot_number: string | null
+          movement_type: Database["public"]["Enums"]["movement_type"]
+          notes: string | null
+          performed_by: string
+          product_id: string
+          quantity: number
+          reference_doc: string | null
+          to_location_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          from_location_id?: string | null
+          id?: string
+          lot_number?: string | null
+          movement_type: Database["public"]["Enums"]["movement_type"]
+          notes?: string | null
+          performed_by: string
+          product_id: string
+          quantity: number
+          reference_doc?: string | null
+          to_location_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          from_location_id?: string | null
+          id?: string
+          lot_number?: string | null
+          movement_type?: Database["public"]["Enums"]["movement_type"]
+          notes?: string | null
+          performed_by?: string
+          product_id?: string
+          quantity?: number
+          reference_doc?: string | null
+          to_location_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movements_from_location_id_fkey"
+            columns: ["from_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movements_to_location_id_fkey"
+            columns: ["to_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nonconformities: {
+        Row: {
+          actual_value: string | null
+          corrective_action: string | null
+          created_at: string
+          description: string
+          expected_value: string | null
+          id: string
+          location_id: string | null
+          lot_number: string | null
+          product_id: string | null
+          reported_by: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["nonconformity_status"]
+          type: Database["public"]["Enums"]["nonconformity_type"]
+          updated_at: string
+        }
+        Insert: {
+          actual_value?: string | null
+          corrective_action?: string | null
+          created_at?: string
+          description: string
+          expected_value?: string | null
+          id?: string
+          location_id?: string | null
+          lot_number?: string | null
+          product_id?: string | null
+          reported_by: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["nonconformity_status"]
+          type: Database["public"]["Enums"]["nonconformity_type"]
+          updated_at?: string
+        }
+        Update: {
+          actual_value?: string | null
+          corrective_action?: string | null
+          created_at?: string
+          description?: string
+          expected_value?: string | null
+          id?: string
+          location_id?: string | null
+          lot_number?: string | null
+          product_id?: string | null
+          reported_by?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["nonconformity_status"]
+          type?: Database["public"]["Enums"]["nonconformity_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nonconformities_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nonconformities_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          active: boolean
+          category: Database["public"]["Enums"]["product_category"]
+          created_at: string
+          description: string | null
+          dimensions: string | null
+          id: string
+          max_stock: number
+          min_stock: number
+          name: string
+          shelf_life_days: number | null
+          sku: string
+          unit: Database["public"]["Enums"]["unit_of_measure"]
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          active?: boolean
+          category: Database["public"]["Enums"]["product_category"]
+          created_at?: string
+          description?: string | null
+          dimensions?: string | null
+          id?: string
+          max_stock?: number
+          min_stock?: number
+          name: string
+          shelf_life_days?: number | null
+          sku: string
+          unit?: Database["public"]["Enums"]["unit_of_measure"]
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          active?: boolean
+          category?: Database["public"]["Enums"]["product_category"]
+          created_at?: string
+          description?: string | null
+          dimensions?: string | null
+          id?: string
+          max_stock?: number
+          min_stock?: number
+          name?: string
+          shelf_life_days?: number | null
+          sku?: string
+          unit?: Database["public"]["Enums"]["unit_of_measure"]
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +317,38 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      movement_type:
+        | "entrada"
+        | "saida"
+        | "transferencia"
+        | "ajuste"
+        | "devolucao"
+      nonconformity_status: "aberta" | "em_analise" | "resolvida" | "encerrada"
+      nonconformity_type:
+        | "divergencia_quantidade"
+        | "produto_avariado"
+        | "validade_vencida"
+        | "produto_errado"
+        | "fifo_violado"
+        | "endereco_errado"
+        | "outro"
+      product_category:
+        | "placa_st"
+        | "placa_ru"
+        | "placa_rf"
+        | "placa_fortissima"
+        | "perfil_metalico"
+        | "acessorio"
+        | "massa"
+        | "fita"
+      unit_of_measure:
+        | "unidade"
+        | "metro"
+        | "metro_quadrado"
+        | "pacote"
+        | "caixa"
+        | "kg"
+        | "litro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +475,43 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      movement_type: [
+        "entrada",
+        "saida",
+        "transferencia",
+        "ajuste",
+        "devolucao",
+      ],
+      nonconformity_status: ["aberta", "em_analise", "resolvida", "encerrada"],
+      nonconformity_type: [
+        "divergencia_quantidade",
+        "produto_avariado",
+        "validade_vencida",
+        "produto_errado",
+        "fifo_violado",
+        "endereco_errado",
+        "outro",
+      ],
+      product_category: [
+        "placa_st",
+        "placa_ru",
+        "placa_rf",
+        "placa_fortissima",
+        "perfil_metalico",
+        "acessorio",
+        "massa",
+        "fita",
+      ],
+      unit_of_measure: [
+        "unidade",
+        "metro",
+        "metro_quadrado",
+        "pacote",
+        "caixa",
+        "kg",
+        "litro",
+      ],
+    },
   },
 } as const
