@@ -39,6 +39,11 @@ const STATUS_LABELS: Record<NCStatus, string> = {
   aberta: 'Aberta', em_analise: 'Em Análise', resolvida: 'Resolvida', encerrada: 'Encerrada',
 };
 
+const DAMAGE_LABELS: Record<string, string> = {
+  pav: 'PAV – Venda c/ Desconto',
+  if: 'IF – Descarte',
+};
+
 const NonConformities = () => {
   const { user } = useAuth();
   const { toast } = useToast();
