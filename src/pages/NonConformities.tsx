@@ -249,6 +249,13 @@ const NonConformities = () => {
                   <TableCell className="font-mono text-xs">{nc.locations?.full_address || '—'}</TableCell>
                   <TableCell className="text-xs">{nc.expected_value || '—'}</TableCell>
                   <TableCell className="text-xs">{nc.actual_value || '—'}</TableCell>
+                  <TableCell className="text-xs">
+                    {(nc as any).damage_classification ? (
+                      <span className={`px-2 py-0.5 rounded-full font-medium ${(nc as any).damage_classification === 'pav' ? 'bg-warning/10 text-warning' : 'bg-destructive/10 text-destructive'}`}>
+                        {DAMAGE_LABELS[(nc as any).damage_classification]}
+                      </span>
+                    ) : '—'}
+                  </TableCell>
                   <TableCell className="text-xs max-w-[200px] truncate">{nc.description}</TableCell>
                   <TableCell>
                     {(nc.status === 'aberta' || nc.status === 'em_analise') && (
