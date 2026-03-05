@@ -225,6 +225,7 @@ const NonConformities = () => {
               <TableHead>Endereço</TableHead>
               <TableHead>Esperado</TableHead>
               <TableHead>Encontrado</TableHead>
+              <TableHead>Classificação</TableHead>
               <TableHead>Descrição</TableHead>
               <TableHead>Ações</TableHead>
             </TableRow>
