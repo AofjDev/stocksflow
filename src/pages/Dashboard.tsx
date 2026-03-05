@@ -10,7 +10,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   placa_fortissima: 'Fortíssima', perfil_metalico: 'Perfil', acessorio: 'Acessório', massa: 'Massa', fita: 'Fita',
 };
 
-const COLORS = ['hsl(220,70%,45%)', 'hsl(145,63%,42%)', 'hsl(35,95%,55%)', 'hsl(0,72%,51%)', 'hsl(270,60%,55%)', 'hsl(200,80%,50%)', 'hsl(180,60%,40%)', 'hsl(340,70%,50%)'];
+const COLORS = ['hsl(25,95%,53%)', 'hsl(145,63%,40%)', 'hsl(45,93%,47%)', 'hsl(0,72%,51%)', 'hsl(200,80%,50%)', 'hsl(30,80%,40%)', 'hsl(180,60%,40%)', 'hsl(340,70%,50%)'];
 
 const Dashboard = () => {
   const { data: inventory } = useQuery({
