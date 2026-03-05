@@ -21,11 +21,14 @@ const Auth = () => {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    const normalizedEmail = email.trim().toLowerCase();
+
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
+      setEmail(normalizedEmail);
       setResetSent(true);
     } catch (error: any) {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });
@@ -38,21 +41,32 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
         if (error) throw error;
       } else {
         const { error } = await supabase.auth.signUp({
-          email,
+          email: normalizedEmail,
           password,
           options: { data: { full_name: fullName } },
         });
         if (error) throw error;
+        setEmail(normalizedEmail);
         setSignupDone(true);
       }
     } catch (error: any) {
-      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      const rawMessage = String(error?.message ?? '');
+      const isInvalidCredentials = rawMessage.toLowerCase().includes('invalid login credentials');
+      toast({
+        title: 'Erro',
+        description: isInvalidCredentials
+          ? 'Email ou senha inválidos. Confira se o email está correto e tente novamente.'
+          : rawMessage,
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -68,7 +82,7 @@ const Auth = () => {
             </div>
             <h1 className="text-xl font-bold">Conta criada!</h1>
             <p className="text-sm text-muted-foreground">
-              Sua conta foi criada com sucesso. Um administrador precisa aprovar seu acesso antes que você possa usar o sistema.
+              Sua conta foi criada. Se você receber email de confirmação, confirme-o antes do login; depois, um administrador precisa aprovar seu acesso ao sistema.
             </p>
             <Button variant="outline" onClick={() => { setSignupDone(false); setIsLogin(true); }}>
               Voltar ao login
