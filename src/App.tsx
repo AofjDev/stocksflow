@@ -13,6 +13,7 @@ import Locations from "@/pages/Locations";
 import Movements from "@/pages/Movements";
 import NonConformities from "@/pages/NonConformities";
 import AdminUsers from "@/pages/AdminUsers";
+import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
