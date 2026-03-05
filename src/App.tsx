@@ -13,6 +13,7 @@ import Locations from "@/pages/Locations";
 import Movements from "@/pages/Movements";
 import NonConformities from "@/pages/NonConformities";
 import AdminUsers from "@/pages/AdminUsers";
+import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<AuthRoute />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/estoque" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
             <Route path="/enderecos" element={<ProtectedRoute><Locations /></ProtectedRoute>} />

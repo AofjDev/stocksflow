@@ -14,7 +14,25 @@ const Auth = () => {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [signupDone, setSignupDone] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const { toast } = useToast();
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      setResetSent(true);
+    } catch (error: any) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +59,62 @@ const Auth = () => {
   };
 
   if (signupDone) {
+  if (resetSent) {
     return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md shadow-lg border-border/50">
+          <CardHeader className="text-center space-y-4">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
+              <Warehouse className="h-7 w-7 text-primary-foreground" />
+            </div>
+            <h1 className="text-xl font-bold">Email enviado!</h1>
+            <p className="text-sm text-muted-foreground">
+              Enviamos um link de recuperação para <strong>{email}</strong>. Verifique sua caixa de entrada.
+            </p>
+            <Button variant="outline" onClick={() => { setResetSent(false); setForgotMode(false); }}>
+              Voltar ao login
+            </Button>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  if (forgotMode) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md shadow-lg border-border/50">
+          <CardHeader className="text-center space-y-4 pb-2">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
+              <Warehouse className="h-7 w-7 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Recuperar senha</h1>
+              <p className="text-sm text-muted-foreground mt-1">Informe seu email para receber o link de recuperação</p>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" required />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Aguarde...' : 'Enviar link de recuperação'}
+              </Button>
+              <p className="text-center text-sm text-muted-foreground">
+                <button type="button" onClick={() => setForgotMode(false)} className="text-primary font-medium hover:underline">
+                  Voltar ao login
+                </button>
+              </p>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md shadow-lg border-border/50">
           <CardHeader className="text-center space-y-4">
@@ -88,6 +161,11 @@ const Auth = () => {
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
               <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
+              {isLogin && (
+                <button type="button" onClick={() => setForgotMode(true)} className="text-xs text-primary hover:underline mt-1 block ml-auto">
+                  Esqueceu a senha?
+                </button>
+              )}
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Aguarde...' : isLogin ? (
