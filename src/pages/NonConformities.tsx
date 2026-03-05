@@ -186,6 +186,18 @@ const NonConformities = () => {
                 <Label>Descrição *</Label>
                 <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} required rows={3} placeholder="Descreva a não conformidade..." />
               </div>
+              {form.type === 'produto_avariado' && (
+                <div className="space-y-2">
+                  <Label>Classificação da Avaria *</Label>
+                  <Select value={form.damage_classification} onValueChange={v => setForm(f => ({ ...f, damage_classification: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pav">PAV – Produto p/ venda c/ desconto</SelectItem>
+                      <SelectItem value="if">IF – Produto p/ descarte</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>Valor Esperado</Label>
