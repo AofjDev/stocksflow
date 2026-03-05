@@ -284,25 +284,31 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approved: boolean
           created_at: string
           full_name: string
           id: string
+          is_admin: boolean
           role: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          approved?: boolean
           created_at?: string
           full_name?: string
           id?: string
+          is_admin?: boolean
           role?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          approved?: boolean
           created_at?: string
           full_name?: string
           id?: string
+          is_admin?: boolean
           role?: string
           updated_at?: string
           user_id?: string

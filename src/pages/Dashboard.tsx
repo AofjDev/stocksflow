@@ -10,7 +10,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   placa_fortissima: 'Fortíssima', perfil_metalico: 'Perfil', acessorio: 'Acessório', massa: 'Massa', fita: 'Fita',
 };
 
-const COLORS = ['hsl(220,70%,45%)', 'hsl(145,63%,42%)', 'hsl(35,95%,55%)', 'hsl(0,72%,51%)', 'hsl(270,60%,55%)', 'hsl(200,80%,50%)', 'hsl(180,60%,40%)', 'hsl(340,70%,50%)'];
+const COLORS = ['hsl(25,95%,53%)', 'hsl(145,63%,40%)', 'hsl(45,93%,47%)', 'hsl(0,72%,51%)', 'hsl(200,80%,50%)', 'hsl(30,80%,40%)', 'hsl(180,60%,40%)', 'hsl(340,70%,50%)'];
 
 const Dashboard = () => {
   const { data: inventory } = useQuery({
@@ -79,13 +79,16 @@ const Dashboard = () => {
     return acc;
   }, [] as { day: string; count: number }[]).reverse() || [];
 
+  // Vacancy stats
+  const freeLocations = totalLocations - occupiedLocationIds.size;
+
   const stats = [
     { label: 'Itens em Estoque', value: totalItems, icon: Package, color: 'text-primary' },
     { label: 'Ocupação', value: `${occupancyRate}%`, icon: MapPin, color: 'text-success' },
+    { label: 'Vagas Livres', value: freeLocations, icon: MapPin, color: 'text-info' },
     { label: 'Vencendo em 30d', value: expiringSoon.length, icon: Clock, color: 'text-warning' },
     { label: 'Vencidos', value: expired.length, icon: TrendingDown, color: 'text-destructive' },
     { label: 'NCs Abertas', value: openNCs.length, icon: AlertTriangle, color: 'text-destructive' },
-    { label: 'Movimentações', value: movements?.length || 0, icon: ArrowLeftRight, color: 'text-info' },
   ];
 
   return (
@@ -114,7 +117,7 @@ const Dashboard = () => {
                   <XAxis dataKey="day" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
-                  <Bar dataKey="count" fill="hsl(220,70%,45%)" radius={[4, 4, 0, 0]} name="Movimentações" />
+                  <Bar dataKey="count" fill="hsl(25,95%,53%)" radius={[4, 4, 0, 0]} name="Movimentações" />
                 </BarChart>
               </ResponsiveContainer>
             ) : (

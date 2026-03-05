@@ -6,59 +6,59 @@
 
 @layer base {
   :root {
-    --background: 220 20% 97%;
-    --foreground: 220 25% 10%;
+    --background: 0 0% 96%;
+    --foreground: 0 0% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    --card-foreground: 0 0% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
+    --popover-foreground: 0 0% 8%;
 
-    --primary: 220 70% 45%;
+    --primary: 25 95% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 92%;
-    --secondary-foreground: 220 25% 20%;
+    --secondary: 30 10% 92%;
+    --secondary-foreground: 0 0% 15%;
 
-    --muted: 220 15% 94%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 30 8% 93%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 35 95% 55%;
-    --accent-foreground: 35 95% 15%;
+    --accent: 25 95% 53%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 145 63% 42%;
+    --success: 145 63% 40%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 35 95% 55%;
-    --warning-foreground: 35 95% 15%;
+    --warning: 45 93% 47%;
+    --warning-foreground: 0 0% 10%;
 
     --info: 200 80% 50%;
     --info-foreground: 0 0% 100%;
 
-    --border: 220 15% 88%;
-    --input: 220 15% 88%;
-    --ring: 220 70% 45%;
+    --border: 30 10% 88%;
+    --input: 30 10% 88%;
+    --ring: 25 95% 53%;
 
-    --radius: 0.625rem;
+    --radius: 0.5rem;
 
-    --sidebar-background: 220 25% 12%;
-    --sidebar-foreground: 220 15% 85%;
-    --sidebar-primary: 220 70% 55%;
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 75%;
+    --sidebar-primary: 25 95% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 18%;
-    --sidebar-accent-foreground: 220 15% 90%;
-    --sidebar-border: 220 20% 20%;
-    --sidebar-ring: 220 70% 55%;
+    --sidebar-accent: 0 0% 13%;
+    --sidebar-accent-foreground: 0 0% 92%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 25 95% 53%;
 
-    --chart-1: 220 70% 45%;
-    --chart-2: 145 63% 42%;
-    --chart-3: 35 95% 55%;
+    --chart-1: 25 95% 53%;
+    --chart-2: 145 63% 40%;
+    --chart-3: 45 93% 47%;
     --chart-4: 0 72% 51%;
-    --chart-5: 270 60% 55%;
+    --chart-5: 200 80% 50%;
   }
 }
 
@@ -83,11 +83,7 @@
 }
 
 @layer utilities {
-  .glass-card {
-    @apply bg-card/80 backdrop-blur-sm border border-border/50 shadow-sm;
-  }
-  
   .stat-card {
-    @apply bg-card rounded-xl border border-border/50 p-5 shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/20;
+    @apply bg-card rounded-lg border border-border/60 p-4 shadow-sm transition-all duration-200 hover:shadow-md;
   }
 }
