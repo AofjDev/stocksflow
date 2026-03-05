@@ -69,8 +69,8 @@ const Auth = () => {
             <Warehouse className="h-7 w-7 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Gypsum WMS</h1>
-            <p className="text-sm text-muted-foreground mt-1">Sistema de Gestão de Armazém</p>
+            <h1 className="text-2xl font-bold tracking-tight">StockFlow</h1>
+            <p className="text-sm text-muted-foreground mt-1">Warehouse Management System</p>
           </div>
         </CardHeader>
         <CardContent>
