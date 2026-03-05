@@ -19,7 +19,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
     ...(isAdmin ? [{ to: '/admin/usuarios', icon: Users, label: 'Usuários' }] : []),
   ];
 
-  const currentLabel = navItems.find(i => i.to === location.pathname)?.label || 'Gypsum WMS';
+  const currentLabel = navItems.find(i => i.to === location.pathname)?.label || 'StockFlow';
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -36,7 +36,7 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
             <Warehouse className="h-4 w-4 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-sidebar-primary-foreground">Gypsum WMS</h2>
+            <h2 className="text-sm font-bold text-sidebar-primary-foreground">StockFlow</h2>
           </div>
           <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-sidebar-foreground/60 hover:text-sidebar-foreground">
             <X className="h-5 w-5" />
