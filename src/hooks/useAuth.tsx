@@ -61,23 +61,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+    const hydrateSession = async (currentSession: Session | null) => {
       setSession(currentSession);
+
       if (currentSession?.user) {
-        setTimeout(() => fetchProfile(currentSession.user), 0);
+        await fetchProfile(currentSession.user);
       } else {
         setProfile(null);
         setIsAdmin(false);
       }
+
       setLoading(false);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      void hydrateSession(currentSession);
     });
 
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      if (currentSession?.user) {
-        fetchProfile(currentSession.user);
-      }
-      setLoading(false);
+      void hydrateSession(currentSession);
     });
 
     return () => subscription.unsubscribe();
