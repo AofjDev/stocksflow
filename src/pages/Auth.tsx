@@ -51,7 +51,7 @@ const Auth = () => {
         const { error } = await supabase.auth.signUp({
           email: normalizedEmail,
           password,
-          options: { data: { full_name: fullName } },
+          options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
         setEmail(normalizedEmail);
