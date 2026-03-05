@@ -117,7 +117,7 @@ const Dashboard = () => {
                   <XAxis dataKey="day" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
-                  <Bar dataKey="count" fill="hsl(220,70%,45%)" radius={[4, 4, 0, 0]} name="Movimentações" />
+                  <Bar dataKey="count" fill="hsl(25,95%,53%)" radius={[4, 4, 0, 0]} name="Movimentações" />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
