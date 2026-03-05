@@ -105,7 +105,7 @@ const NonConformities = () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard-nc'] });
       toast({ title: 'NC registrada!' });
       setDialogOpen(false);
-      setForm({ type: 'divergencia_quantidade', product_id: '', location_id: '', lot_number: '', description: '', expected_value: '', actual_value: '' });
+      setForm({ type: 'divergencia_quantidade', product_id: '', location_id: '', lot_number: '', description: '', expected_value: '', actual_value: '', damage_classification: '' });
     },
     onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
   });
