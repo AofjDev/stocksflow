@@ -79,13 +79,16 @@ const Dashboard = () => {
     return acc;
   }, [] as { day: string; count: number }[]).reverse() || [];
 
+  // Vacancy stats
+  const freeLocations = totalLocations - occupiedLocationIds.size;
+
   const stats = [
     { label: 'Itens em Estoque', value: totalItems, icon: Package, color: 'text-primary' },
     { label: 'Ocupação', value: `${occupancyRate}%`, icon: MapPin, color: 'text-success' },
+    { label: 'Vagas Livres', value: freeLocations, icon: MapPin, color: 'text-info' },
     { label: 'Vencendo em 30d', value: expiringSoon.length, icon: Clock, color: 'text-warning' },
     { label: 'Vencidos', value: expired.length, icon: TrendingDown, color: 'text-destructive' },
     { label: 'NCs Abertas', value: openNCs.length, icon: AlertTriangle, color: 'text-destructive' },
-    { label: 'Movimentações', value: movements?.length || 0, icon: ArrowLeftRight, color: 'text-info' },
   ];
 
   return (
