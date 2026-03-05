@@ -161,6 +161,11 @@ const Auth = () => {
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
               <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
+              {isLogin && (
+                <button type="button" onClick={() => setForgotMode(true)} className="text-xs text-primary hover:underline mt-1 block ml-auto">
+                  Esqueceu a senha?
+                </button>
+              )}
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Aguarde...' : isLogin ? (
