@@ -59,6 +59,26 @@ const Auth = () => {
   };
 
   if (signupDone) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md shadow-lg border-border/50">
+          <CardHeader className="text-center space-y-4">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
+              <Warehouse className="h-7 w-7 text-primary-foreground" />
+            </div>
+            <h1 className="text-xl font-bold">Conta criada!</h1>
+            <p className="text-sm text-muted-foreground">
+              Sua conta foi criada com sucesso. Um administrador precisa aprovar seu acesso antes que você possa usar o sistema.
+            </p>
+            <Button variant="outline" onClick={() => { setSignupDone(false); setIsLogin(true); }}>
+              Voltar ao login
+            </Button>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
   if (resetSent) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -109,26 +129,6 @@ const Auth = () => {
               </p>
             </form>
           </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md shadow-lg border-border/50">
-          <CardHeader className="text-center space-y-4">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
-              <Warehouse className="h-7 w-7 text-primary-foreground" />
-            </div>
-            <h1 className="text-xl font-bold">Conta criada!</h1>
-            <p className="text-sm text-muted-foreground">
-              Sua conta foi criada com sucesso. Um administrador precisa aprovar seu acesso antes que você possa usar o sistema.
-            </p>
-            <Button variant="outline" onClick={() => { setSignupDone(false); setIsLogin(true); }}>
-              Voltar ao login
-            </Button>
-          </CardHeader>
         </Card>
       </div>
     );
