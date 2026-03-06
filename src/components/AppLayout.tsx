@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, Package, MapPin, ArrowLeftRight, AlertTriangle, LogOut, Menu, X, Warehouse, Users } from 'lucide-react';
+import { LayoutDashboard, Package, MapPin, ArrowLeftRight, AlertTriangle, LogOut, Menu, X, Warehouse, Users, Tags } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
