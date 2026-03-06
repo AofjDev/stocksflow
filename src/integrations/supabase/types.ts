@@ -24,6 +24,7 @@ export type Database = {
           product_id: string
           quantity: number
           received_at: string
+          status_id: string | null
           updated_at: string
         }
         Insert: {
@@ -35,6 +36,7 @@ export type Database = {
           product_id: string
           quantity?: number
           received_at?: string
+          status_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -46,6 +48,7 @@ export type Database = {
           product_id?: string
           quantity?: number
           received_at?: string
+          status_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -63,7 +66,41 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "inventory_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_statuses"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      inventory_statuses: {
+        Row: {
+          active: boolean
+          color: string
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
       }
       locations: {
         Row: {
