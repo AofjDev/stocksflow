@@ -16,7 +16,10 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
     { to: '/enderecos', icon: MapPin, label: 'Endereços' },
     { to: '/movimentacoes', icon: ArrowLeftRight, label: 'Movimentações' },
     { to: '/nao-conformidades', icon: AlertTriangle, label: 'Não Conformidades' },
-    ...(isAdmin ? [{ to: '/admin/usuarios', icon: Users, label: 'Usuários' }] : []),
+    ...(isAdmin ? [
+      { to: '/admin/usuarios', icon: Users, label: 'Usuários' },
+      { to: '/admin/status', icon: Tags, label: 'Status Estoque' },
+    ] : []),
   ];
 
   const currentLabel = navItems.find(i => i.to === location.pathname)?.label || 'StockFlow';
