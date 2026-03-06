@@ -29,7 +29,7 @@ const Inventory = () => {
   const { data: inventory, isLoading } = useQuery({
     queryKey: ['inventory'],
     queryFn: async () => {
-      const { data } = await supabase.from('inventory').select('*, products(*), locations(*)');
+      const { data } = await supabase.from('inventory').select('*, products(*), locations(*), inventory_statuses(*)');
       return data || [];
     },
   });
@@ -50,14 +50,21 @@ const Inventory = () => {
     },
   });
 
+  const { data: statuses } = useQuery({
+    queryKey: ['inventory-statuses'],
+    queryFn: async () => {
+      const { data } = await supabase.from('inventory_statuses').select('*').order('sort_order');
+      return data || [];
+    },
+  });
+
   const [form, setForm] = useState({
     product_id: '', location_id: '', quantity: '', lot_number: '',
-    manufacturing_date: '', expiry_date: '',
+    manufacturing_date: '', expiry_date: '', status_id: '',
   });
 
   const addInventory = useMutation({
     mutationFn: async () => {
-      // Also create a movement entry
       const { error: invError } = await supabase.from('inventory').insert({
         product_id: form.product_id,
         location_id: form.location_id,
@@ -65,6 +72,7 @@ const Inventory = () => {
         lot_number: form.lot_number || null,
         manufacturing_date: form.manufacturing_date || null,
         expiry_date: form.expiry_date || null,
+        status_id: form.status_id || null,
       });
       if (invError) throw invError;
 
@@ -84,13 +92,13 @@ const Inventory = () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard-inventory'] });
       toast({ title: 'Sucesso', description: 'Estoque adicionado' });
       setDialogOpen(false);
-      setForm({ product_id: '', location_id: '', quantity: '', lot_number: '', manufacturing_date: '', expiry_date: '' });
+      setForm({ product_id: '', location_id: '', quantity: '', lot_number: '', manufacturing_date: '', expiry_date: '', status_id: '' });
     },
     onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
   });
 
   const filtered = inventory?.filter(item => {
-    const matchSearch = !search || 
+    const matchSearch = !search ||
       item.products?.name.toLowerCase().includes(search.toLowerCase()) ||
       item.products?.sku.toLowerCase().includes(search.toLowerCase()) ||
       item.locations?.full_address?.toLowerCase().includes(search.toLowerCase()) ||
@@ -111,7 +119,6 @@ const Inventory = () => {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex gap-2 flex-1 w-full sm:w-auto">
           <div className="relative flex-1 max-w-sm">
@@ -176,6 +183,23 @@ const Inventory = () => {
                   <Input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={form.status_id} onValueChange={v => setForm(f => ({ ...f, status_id: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Sem status" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Sem status</SelectItem>
+                    {statuses?.map(s => (
+                      <SelectItem key={s.id} value={s.id}>
+                        <span className="flex items-center gap-2">
+                          <span className="h-2.5 w-2.5 rounded-full inline-block" style={{ backgroundColor: s.color }} />
+                          {s.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button type="submit" className="w-full" disabled={addInventory.isPending}>
                 {addInventory.isPending ? 'Salvando...' : 'Registrar Entrada'}
               </Button>
@@ -184,7 +208,6 @@ const Inventory = () => {
         </Dialog>
       </div>
 
-      {/* Table */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <Table>
           <TableHeader>
@@ -202,7 +225,7 @@ const Inventory = () => {
               <TableHead className="cursor-pointer" onClick={() => setSortField('expiry')}>
                 <span className="flex items-center gap-1">Validade <ArrowUpDown className="h-3 w-3" /></span>
               </TableHead>
-              <TableHead>FIFO</TableHead>
+              <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -214,13 +237,9 @@ const Inventory = () => {
               filtered.map(item => {
                 const isExpired = item.expiry_date && !isAfter(new Date(item.expiry_date), today);
                 const isExpiring = item.expiry_date && !isExpired && !isAfter(new Date(item.expiry_date), new Date(today.getTime() + 30 * 86400000));
-                
-                // FIFO: find oldest received for same product
-                const sameProduct = inventory?.filter(i => i.product_id === item.product_id && i.quantity > 0).sort((a, b) => new Date(a.received_at).getTime() - new Date(b.received_at).getTime());
-                const isOldest = sameProduct?.[0]?.id === item.id;
 
                 return (
-                  <TableRow key={item.id} className={isExpired ? 'bg-destructive/5' : isExpiring ? 'bg-warning/5' : ''}>
+                  <TableRow key={item.id} className={isExpired ? 'bg-destructive/5' : isExpiring ? 'bg-yellow-500/5' : ''}>
                     <TableCell className="font-medium">{item.products?.name}</TableCell>
                     <TableCell className="font-mono text-xs">{item.products?.sku}</TableCell>
                     <TableCell><span className="text-xs px-2 py-0.5 rounded-full bg-secondary">{CATEGORY_LABELS[item.products?.category || ''] || item.products?.category}</span></TableCell>
@@ -229,14 +248,19 @@ const Inventory = () => {
                     <TableCell className="font-semibold">{item.quantity}</TableCell>
                     <TableCell>
                       {item.expiry_date ? (
-                        <span className={`text-xs font-mono ${isExpired ? 'text-destructive font-bold' : isExpiring ? 'text-warning font-medium' : ''}`}>
+                        <span className={`text-xs font-mono ${isExpired ? 'text-destructive font-bold' : isExpiring ? 'text-yellow-500 font-medium' : ''}`}>
                           {format(new Date(item.expiry_date), 'dd/MM/yyyy')}
                         </span>
                       ) : '—'}
                     </TableCell>
                     <TableCell>
-                      {isOldest && sameProduct && sameProduct.length > 1 ? (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success font-medium">Prioridade</span>
+                      {(item as any).inventory_statuses ? (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{
+                          backgroundColor: (item as any).inventory_statuses.color + '20',
+                          color: (item as any).inventory_statuses.color,
+                        }}>
+                          {(item as any).inventory_statuses.name}
+                        </span>
                       ) : '—'}
                     </TableCell>
                   </TableRow>

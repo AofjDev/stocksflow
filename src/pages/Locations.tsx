@@ -7,19 +7,22 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, MapPin } from 'lucide-react';
+import { Plus, MapPin, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const EMPTY_FORM = { area: '', position: '', capacity: '20', location_type: 'pallet' };
 
 const Locations = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [form, setForm] = useState({ area: '', position: '', capacity: '20', location_type: 'pallet' });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(EMPTY_FORM);
 
   const { data: locations } = useQuery({
     queryKey: ['locations'],
     queryFn: async () => {
-      const { data } = await supabase.from('locations').select('*').eq('active', true).order('area').order('position');
+      const { data } = await supabase.from('locations').select('*').order('area').order('position');
       return data || [];
     },
   });
@@ -32,31 +35,62 @@ const Locations = () => {
     },
   });
 
-  const addLocation = useMutation({
+  const saveMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('locations').insert({
+      const payload = {
         area: form.area.toUpperCase(),
         position: form.position.padStart(2, '0'),
         capacity: parseInt(form.capacity),
         location_type: form.location_type,
-      });
-      if (error) throw error;
+      };
+      if (editingId) {
+        const { error } = await supabase.from('locations').update(payload).eq('id', editingId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('locations').insert(payload);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['locations'] });
-      toast({ title: 'Endereço criado!' });
-      setDialogOpen(false);
-      setForm({ area: '', position: '', capacity: '20', location_type: 'pallet' });
+      toast({ title: editingId ? 'Endereço atualizado!' : 'Endereço criado!' });
+      closeDialog();
     },
     onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
   });
 
-  // Group by area
-  const areas = locations?.reduce((acc, loc) => {
+  const toggleActive = useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      const { error } = await supabase.from('locations').update({ active }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['locations'] });
+      toast({ title: 'Status atualizado!' });
+    },
+    onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
+  });
+
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+  };
+
+  const openEdit = (loc: any) => {
+    setEditingId(loc.id);
+    setForm({ area: loc.area, position: loc.position, capacity: String(loc.capacity), location_type: loc.location_type });
+    setDialogOpen(true);
+  };
+
+  const activeLocations = locations?.filter(l => l.active) || [];
+  const inactiveLocations = locations?.filter(l => !l.active) || [];
+
+  const areas = activeLocations.reduce((acc, loc) => {
     if (!acc[loc.area]) acc[loc.area] = [];
     acc[loc.area].push(loc);
     return acc;
-  }, {} as Record<string, typeof locations>) || {};
+  }, {} as Record<string, typeof activeLocations>);
 
   const getOccupancy = (locId: string) => {
     const items = inventory?.filter(i => i.location_id === locId);
@@ -66,14 +100,14 @@ const Locations = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
-        <p className="text-sm text-muted-foreground">{locations?.length || 0} endereços cadastrados</p>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <p className="text-sm text-muted-foreground">{activeLocations.length} ativos · {inactiveLocations.length} inativos</p>
+        <Dialog open={dialogOpen} onOpenChange={v => { if (!v) closeDialog(); else setDialogOpen(true); }}>
           <DialogTrigger asChild>
             <Button><Plus className="mr-2 h-4 w-4" /> Novo Endereço</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Novo Endereço</DialogTitle></DialogHeader>
-            <form onSubmit={e => { e.preventDefault(); addLocation.mutate(); }} className="space-y-4">
+            <DialogHeader><DialogTitle>{editingId ? 'Editar Endereço' : 'Novo Endereço'}</DialogTitle></DialogHeader>
+            <form onSubmit={e => { e.preventDefault(); saveMutation.mutate(); }} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>Área</Label>
@@ -102,15 +136,16 @@ const Locations = () => {
                   </Select>
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={addLocation.isPending}>Criar Endereço</Button>
+              <Button type="submit" className="w-full" disabled={saveMutation.isPending}>
+                {editingId ? 'Salvar Alterações' : 'Criar Endereço'}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Visual map */}
       {Object.entries(areas).map(([area, locs]) => (
-        <div key={area} className="stat-card">
+        <div key={area} className="rounded-xl border border-border bg-card p-4">
           <h3 className="text-sm font-semibold mb-3">Área {area}</h3>
           <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-10 gap-2">
             {locs?.map(loc => {
@@ -119,20 +154,21 @@ const Locations = () => {
               return (
                 <div
                   key={loc.id}
+                  onClick={() => openEdit(loc)}
                   className={cn(
-                    "relative rounded-lg border p-2 text-center transition-all cursor-default",
+                    "relative rounded-lg border p-2 text-center transition-all cursor-pointer hover:ring-2 hover:ring-primary/30",
                     pct === 0 && "border-border bg-muted/30",
-                    pct > 0 && pct < 80 && "border-success/40 bg-success/5",
-                    pct >= 80 && pct < 100 && "border-warning/40 bg-warning/5",
+                    pct > 0 && pct < 80 && "border-green-500/40 bg-green-500/5",
+                    pct >= 80 && pct < 100 && "border-yellow-500/40 bg-yellow-500/5",
                     pct >= 100 && "border-destructive/40 bg-destructive/5"
                   )}
-                  title={`${loc.full_address} — ${occ}/${loc.capacity} (${loc.location_type})`}
+                  title={`${loc.full_address} — ${occ}/${loc.capacity} (${loc.location_type}) — Clique para editar`}
                 >
                   <MapPin className={cn(
                     "h-4 w-4 mx-auto mb-1",
                     pct === 0 && "text-muted-foreground",
-                    pct > 0 && pct < 80 && "text-success",
-                    pct >= 80 && pct < 100 && "text-warning",
+                    pct > 0 && pct < 80 && "text-green-500",
+                    pct >= 80 && pct < 100 && "text-yellow-500",
                     pct >= 100 && "text-destructive"
                   )} />
                   <p className="text-xs font-mono font-medium">{loc.full_address}</p>
@@ -143,6 +179,29 @@ const Locations = () => {
           </div>
         </div>
       ))}
+
+      {inactiveLocations.length > 0 && (
+        <div className="rounded-xl border border-border bg-card p-4 opacity-60">
+          <h3 className="text-sm font-semibold mb-3">Inativos</h3>
+          <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-10 gap-2">
+            {inactiveLocations.map(loc => (
+              <div
+                key={loc.id}
+                className="relative rounded-lg border border-dashed border-border p-2 text-center cursor-pointer hover:ring-2 hover:ring-primary/30"
+                onClick={() => openEdit(loc)}
+                title="Clique para editar"
+              >
+                <MapPin className="h-4 w-4 mx-auto mb-1 text-muted-foreground/40" />
+                <p className="text-xs font-mono font-medium text-muted-foreground">{loc.full_address}</p>
+                <button
+                  onClick={e => { e.stopPropagation(); toggleActive.mutate({ id: loc.id, active: true }); }}
+                  className="text-[10px] text-primary hover:underline mt-0.5"
+                >Reativar</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
