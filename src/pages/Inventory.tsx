@@ -186,10 +186,10 @@ const Inventory = () => {
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
-                <Select value={form.status_id} onValueChange={v => setForm(f => ({ ...f, status_id: v }))}>
+                <Select value={form.status_id || 'none'} onValueChange={v => setForm(f => ({ ...f, status_id: v === 'none' ? '' : v }))}>
                   <SelectTrigger><SelectValue placeholder="Sem status" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sem status</SelectItem>
+                    <SelectItem value="none">Sem status</SelectItem>
                     {statuses?.map(s => (
                       <SelectItem key={s.id} value={s.id}>
                         <span className="flex items-center gap-2">
