@@ -147,13 +147,13 @@ const Inventory = () => {
             <DialogHeader><DialogTitle>Nova Entrada de Estoque</DialogTitle></DialogHeader>
             <form onSubmit={e => { e.preventDefault(); addInventory.mutate(); }} className="space-y-4">
               <div className="space-y-2">
-                <Label>Produto</Label>
-                <Select value={form.product_id} onValueChange={v => setForm(f => ({ ...f, product_id: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                    {products?.map(p => <SelectItem key={p.id} value={p.id}>{p.sku} - {p.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Label>Produto (digite o SKU)</Label>
+                <ProductSkuCombobox
+                  products={products || []}
+                  value={form.product_id}
+                  onChange={v => setForm(f => ({ ...f, product_id: v }))}
+                  placeholder="Digite o SKU ou nome do material..."
+                />
               </div>
               <div className="space-y-2">
                 <Label>Endereço</Label>
