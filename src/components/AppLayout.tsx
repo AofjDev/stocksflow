@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, Package, MapPin, ArrowLeftRight, AlertTriangle, LogOut, Menu, X, Warehouse, Users, Tags } from 'lucide-react';
+import { LayoutDashboard, Package, MapPin, ArrowLeftRight, AlertTriangle, LogOut, Menu, X, Warehouse, Users, Tags, BoxesIcon, Grid3X3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -12,8 +12,10 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
 
   const navItems = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/materiais', icon: BoxesIcon, label: 'Materiais' },
     { to: '/estoque', icon: Package, label: 'Estoque' },
     { to: '/enderecos', icon: MapPin, label: 'Endereços' },
+    { to: '/layout', icon: Grid3X3, label: 'Layout' },
     { to: '/movimentacoes', icon: ArrowLeftRight, label: 'Movimentações' },
     { to: '/nao-conformidades', icon: AlertTriangle, label: 'Não Conformidades' },
     ...(isAdmin ? [
