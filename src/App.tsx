@@ -14,6 +14,8 @@ import Movements from "@/pages/Movements";
 import NonConformities from "@/pages/NonConformities";
 import AdminUsers from "@/pages/AdminUsers";
 import InventoryStatuses from "@/pages/InventoryStatuses";
+import Products from "@/pages/Products";
+import WarehouseLayout from "@/pages/WarehouseLayout";
 import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
