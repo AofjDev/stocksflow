@@ -12,8 +12,10 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
 
   const navItems = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/materiais', icon: BoxesIcon, label: 'Materiais' },
     { to: '/estoque', icon: Package, label: 'Estoque' },
     { to: '/enderecos', icon: MapPin, label: 'Endereços' },
+    { to: '/layout', icon: Grid3X3, label: 'Layout' },
     { to: '/movimentacoes', icon: ArrowLeftRight, label: 'Movimentações' },
     { to: '/nao-conformidades', icon: AlertTriangle, label: 'Não Conformidades' },
     ...(isAdmin ? [

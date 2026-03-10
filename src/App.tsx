@@ -49,8 +49,10 @@ const App = () => (
             <Route path="/login" element={<AuthRoute />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/materiais" element={<ProtectedRoute><Products /></ProtectedRoute>} />
             <Route path="/estoque" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
             <Route path="/enderecos" element={<ProtectedRoute><Locations /></ProtectedRoute>} />
+            <Route path="/layout" element={<ProtectedRoute><WarehouseLayout /></ProtectedRoute>} />
             <Route path="/movimentacoes" element={<ProtectedRoute><Movements /></ProtectedRoute>} />
             <Route path="/nao-conformidades" element={<ProtectedRoute><NonConformities /></ProtectedRoute>} />
             <Route path="/admin/usuarios" element={<ProtectedRoute adminOnly><AdminUsers /></ProtectedRoute>} />
