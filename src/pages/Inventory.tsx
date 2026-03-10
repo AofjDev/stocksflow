@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Search, ArrowUpDown } from 'lucide-react';
 import { format, isAfter } from 'date-fns';
+import ProductSkuCombobox from '@/components/ProductSkuCombobox';
 
 const CATEGORY_LABELS: Record<string, string> = {
   placa_st: 'Placa ST', placa_ru: 'Placa RU', placa_rf: 'Placa RF',
