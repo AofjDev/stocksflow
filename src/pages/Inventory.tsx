@@ -192,10 +192,7 @@ const Inventory = () => {
                     <SelectItem value="none">Sem status</SelectItem>
                     {statuses?.map(s => (
                       <SelectItem key={s.id} value={s.id}>
-                        <span className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full inline-block" style={{ backgroundColor: s.color }} />
-                          {s.name}
-                        </span>
+                        {s.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
