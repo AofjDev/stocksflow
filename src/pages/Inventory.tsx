@@ -157,7 +157,7 @@ const Inventory = () => {
               </div>
               <div className="space-y-2">
                 <Label>Endereço</Label>
-                <Select value={form.location_id} onValueChange={v => setForm(f => ({ ...f, location_id: v }))}>
+                <Select value={form.location_id || undefined} onValueChange={v => setForm(f => ({ ...f, location_id: v }))}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
                     {locations?.map(l => <SelectItem key={l.id} value={l.id}>{l.full_address} ({l.location_type})</SelectItem>)}
