@@ -190,7 +190,9 @@ const Movements = () => {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+        </div>
+
+      <ImportMovements open={importOpen} onOpenChange={setImportOpen} />
 
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <Table>
