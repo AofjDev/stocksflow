@@ -81,7 +81,17 @@ const WarehouseLayout = () => {
         </TabsList>
 
         <TabsContent value="planta" className="mt-4">
-          <WarehouseFloorPlan />
+          <WarehouseFloorPlan onSelectArea={(areaId) => {
+            // Find locations matching this area
+            const areaLocs = activeLocations.filter(l => l.area.toLowerCase() === areaId.toLowerCase());
+            if (areaLocs.length > 0) {
+              setSelectedFloorArea(areaId);
+              setFloorAreaLocations(areaLocs);
+            } else {
+              setSelectedFloorArea(areaId);
+              setFloorAreaLocations([]);
+            }
+          }} />
         </TabsContent>
 
         <TabsContent value="grid" className="mt-4 space-y-4">
