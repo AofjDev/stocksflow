@@ -16,6 +16,8 @@ const WarehouseLayout = () => {
   const [layoutTab, setLayoutTab] = useState<'grid' | 'planta'>('grid');
   const [viewMode, setViewMode] = useState<'grid' | 'row'>('row');
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
+  const [selectedFloorArea, setSelectedFloorArea] = useState<string | null>(null);
+  const [floorAreaLocations, setFloorAreaLocations] = useState<any[]>([]);
   const [columns, setColumns] = useState('6');
   const [filterArea, setFilterArea] = useState('all');
 
