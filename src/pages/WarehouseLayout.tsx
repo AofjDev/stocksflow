@@ -252,7 +252,9 @@ const WarehouseLayout = () => {
             })}
           </div>
         </div>
-      )}
+       )}
+        </TabsContent>
+      </Tabs>
 
       {/* Slot detail dialog */}
       <Dialog open={!!selectedSlot} onOpenChange={v => { if (!v) setSelectedSlot(null); }}>
