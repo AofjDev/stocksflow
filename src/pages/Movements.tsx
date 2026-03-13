@@ -115,10 +115,14 @@ const Movements = () => {
           </SelectContent>
         </Select>
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Nova Movimentação</Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" /> Importar Excel
+          </Button>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="mr-2 h-4 w-4" /> Nova Movimentação</Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Nova Movimentação</DialogTitle></DialogHeader>
             <form onSubmit={e => { e.preventDefault(); createMovement.mutate(); }} className="space-y-4">
