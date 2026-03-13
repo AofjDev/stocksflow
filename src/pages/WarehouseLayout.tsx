@@ -246,6 +246,75 @@ const WarehouseLayout = () => {
           {selectedSlot && <SlotDetail location={selectedSlot} inventory={inventory || []} />}
         </DialogContent>
       </Dialog>
+
+      {/* Floor plan area detail dialog */}
+      <Dialog open={!!selectedFloorArea} onOpenChange={v => { if (!v) { setSelectedFloorArea(null); setFloorAreaLocations([]); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Área: {selectedFloorArea?.toUpperCase()}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {floorAreaLocations.length === 0 ? (
+              <div className="text-center py-6 space-y-2">
+                <p className="text-sm text-muted-foreground">Nenhum endereço cadastrado para esta área.</p>
+                <p className="text-xs text-muted-foreground">
+                  Cadastre endereços em <span className="font-medium text-foreground">Endereços</span> com a área "<span className="font-mono font-medium">{selectedFloorArea?.toUpperCase()}</span>" para vincular a esta zona.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="p-2 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground">Endereços</p>
+                    <p className="font-bold">{floorAreaLocations.length}</p>
+                  </div>
+                  <div className="p-2 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground">Capacidade</p>
+                    <p className="font-bold">{floorAreaLocations.reduce((s, l) => s + l.capacity, 0)}</p>
+                  </div>
+                  <div className="p-2 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground">Ocupado</p>
+                    <p className="font-bold">{floorAreaLocations.reduce((s, l) => s + getSlotData(l.id).totalQty, 0)}</p>
+                  </div>
+                </div>
+                <ScrollArea className="max-h-64">
+                  <div className="space-y-1.5">
+                    {floorAreaLocations.map(loc => {
+                      const { totalQty } = getSlotData(loc.id);
+                      const colors = getSlotColor(totalQty, loc.capacity);
+                      const pct = loc.capacity > 0 ? Math.round((totalQty / loc.capacity) * 100) : 0;
+                      return (
+                        <div
+                          key={loc.id}
+                          onClick={() => { setSelectedFloorArea(null); setFloorAreaLocations([]); setSelectedSlot(loc); }}
+                          className={cn(
+                            "flex items-center justify-between p-2.5 rounded-lg border cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all",
+                            colors.bg, colors.border
+                          )}
+                        >
+                          <div>
+                            <p className="text-sm font-mono font-bold">{loc.full_address}</p>
+                            <p className="text-[10px] text-muted-foreground">{loc.location_type}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className={cn("text-sm font-bold", colors.text)}>{totalQty}/{loc.capacity}</p>
+                            <div className="w-16 h-1.5 rounded-full bg-border overflow-hidden mt-1">
+                              <div
+                                className={cn("h-full rounded-full", pct < 50 ? "bg-emerald-500" : pct < 80 ? "bg-amber-500" : "bg-red-500")}
+                                style={{ width: `${Math.min(pct, 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
