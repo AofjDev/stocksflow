@@ -191,6 +191,7 @@ const Movements = () => {
           </DialogContent>
         </Dialog>
         </div>
+      </div>
 
       <ImportMovements open={importOpen} onOpenChange={setImportOpen} />
 
