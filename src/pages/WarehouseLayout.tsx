@@ -5,12 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { Maximize2, Minimize2, LayoutGrid, List } from 'lucide-react';
+import { Maximize2, Minimize2, LayoutGrid, List, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import WarehouseFloorPlan from '@/components/WarehouseFloorPlan';
 
 const WarehouseLayout = () => {
+  const [layoutTab, setLayoutTab] = useState<'grid' | 'planta'>('grid');
   const [viewMode, setViewMode] = useState<'grid' | 'row'>('row');
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
   const [columns, setColumns] = useState('6');
@@ -67,70 +70,52 @@ const WarehouseLayout = () => {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      {/* Controls */}
-      <div className="flex flex-wrap gap-3 items-end">
-        <div className="space-y-1">
-          <Label className="text-xs">Área</Label>
-          <Select value={filterArea} onValueChange={setFilterArea}>
-            <SelectTrigger className="w-32 h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              {areas.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Colunas</Label>
-          <Input
-            type="number"
-            min={2}
-            max={20}
-            value={columns}
-            onChange={e => setColumns(e.target.value)}
-            className="w-20 h-9"
-          />
-        </div>
-        <div className="flex gap-1 border border-border rounded-md p-0.5">
-          <Button
-            variant={viewMode === 'row' ? 'default' : 'ghost'}
-            size="sm"
-            className="h-8 px-2"
-            onClick={() => setViewMode('row')}
-          >
-            <List className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === 'grid' ? 'default' : 'ghost'}
-            size="sm"
-            className="h-8 px-2"
-            onClick={() => setViewMode('grid')}
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </Button>
-        </div>
+      <Tabs value={layoutTab} onValueChange={v => setLayoutTab(v as 'grid' | 'planta')}>
+        <TabsList>
+          <TabsTrigger value="grid" className="flex items-center gap-1.5">
+            <LayoutGrid className="h-3.5 w-3.5" /> Grade
+          </TabsTrigger>
+          <TabsTrigger value="planta" className="flex items-center gap-1.5">
+            <Map className="h-3.5 w-3.5" /> Planta
+          </TabsTrigger>
+        </TabsList>
 
-        {/* Summary bar */}
-        <div className="ml-auto flex gap-4 items-center text-sm">
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded bg-muted border border-border" />
-            <span className="text-muted-foreground text-xs">Vazio</span>
+        <TabsContent value="planta" className="mt-4">
+          <WarehouseFloorPlan />
+        </TabsContent>
+
+        <TabsContent value="grid" className="mt-4 space-y-4">
+          {/* Controls */}
+          <div className="flex flex-wrap gap-3 items-end">
+            <div className="space-y-1">
+              <Label className="text-xs">Área</Label>
+              <Select value={filterArea} onValueChange={setFilterArea}>
+                <SelectTrigger className="w-32 h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  {areas.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Colunas</Label>
+              <Input type="number" min={2} max={20} value={columns} onChange={e => setColumns(e.target.value)} className="w-20 h-9" />
+            </div>
+            <div className="flex gap-1 border border-border rounded-md p-0.5">
+              <Button variant={viewMode === 'row' ? 'default' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('row')}>
+                <List className="h-4 w-4" />
+              </Button>
+              <Button variant={viewMode === 'grid' ? 'default' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('grid')}>
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="ml-auto flex gap-4 items-center text-sm">
+              <div className="flex items-center gap-2"><div className="h-3 w-3 rounded bg-muted border border-border" /><span className="text-muted-foreground text-xs">Vazio</span></div>
+              <div className="flex items-center gap-2"><div className="h-3 w-3 rounded bg-emerald-500/30 border border-emerald-500/40" /><span className="text-muted-foreground text-xs">&lt;50%</span></div>
+              <div className="flex items-center gap-2"><div className="h-3 w-3 rounded bg-amber-500/30 border border-amber-500/40" /><span className="text-muted-foreground text-xs">&lt;80%</span></div>
+              <div className="flex items-center gap-2"><div className="h-3 w-3 rounded bg-red-500/30 border border-red-500/40" /><span className="text-muted-foreground text-xs">≥100%</span></div>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded bg-emerald-500/30 border border-emerald-500/40" />
-            <span className="text-muted-foreground text-xs">&lt;50%</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded bg-amber-500/30 border border-amber-500/40" />
-            <span className="text-muted-foreground text-xs">&lt;80%</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded bg-red-500/30 border border-red-500/40" />
-            <span className="text-muted-foreground text-xs">≥100%</span>
-          </div>
-        </div>
-      </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -236,7 +221,9 @@ const WarehouseLayout = () => {
             })}
           </div>
         </div>
-      )}
+       )}
+        </TabsContent>
+      </Tabs>
 
       {/* Slot detail dialog */}
       <Dialog open={!!selectedSlot} onOpenChange={v => { if (!v) setSelectedSlot(null); }}>
