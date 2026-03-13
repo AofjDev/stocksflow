@@ -31,6 +31,7 @@ const Movements = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
   const { data: movements, isLoading } = useQuery({
