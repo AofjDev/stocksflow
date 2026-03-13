@@ -5,12 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { Maximize2, Minimize2, LayoutGrid, List } from 'lucide-react';
+import { Maximize2, Minimize2, LayoutGrid, List, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import WarehouseFloorPlan from '@/components/WarehouseFloorPlan';
 
 const WarehouseLayout = () => {
+  const [layoutTab, setLayoutTab] = useState<'grid' | 'planta'>('grid');
   const [viewMode, setViewMode] = useState<'grid' | 'row'>('row');
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
   const [columns, setColumns] = useState('6');
