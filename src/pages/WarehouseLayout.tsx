@@ -70,8 +70,21 @@ const WarehouseLayout = () => {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      {/* Controls */}
-      <div className="flex flex-wrap gap-3 items-end">
+      <Tabs value={layoutTab} onValueChange={v => setLayoutTab(v as 'grid' | 'planta')}>
+        <TabsList>
+          <TabsTrigger value="grid" className="flex items-center gap-1.5">
+            <LayoutGrid className="h-3.5 w-3.5" /> Grade
+          </TabsTrigger>
+          <TabsTrigger value="planta" className="flex items-center gap-1.5">
+            <Map className="h-3.5 w-3.5" /> Planta
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="planta" className="mt-4">
+          <WarehouseFloorPlan />
+        </TabsContent>
+
+        <TabsContent value="grid" className="mt-4 space-y-4">
         <div className="space-y-1">
           <Label className="text-xs">Área</Label>
           <Select value={filterArea} onValueChange={setFilterArea}>
