@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, ArrowRight, ArrowLeft, RefreshCw, Minus, RotateCcw } from 'lucide-react';
+import { Plus, ArrowRight, ArrowLeft, RefreshCw, Minus, RotateCcw, FileSpreadsheet } from 'lucide-react';
+import ImportMovements from '@/components/ImportMovements';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Database } from '@/integrations/supabase/types';
@@ -30,6 +31,7 @@ const Movements = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
   const { data: movements, isLoading } = useQuery({
@@ -113,10 +115,14 @@ const Movements = () => {
           </SelectContent>
         </Select>
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Nova Movimentação</Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" /> Importar Excel
+          </Button>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="mr-2 h-4 w-4" /> Nova Movimentação</Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Nova Movimentação</DialogTitle></DialogHeader>
             <form onSubmit={e => { e.preventDefault(); createMovement.mutate(); }} className="space-y-4">
@@ -184,7 +190,10 @@ const Movements = () => {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
+
+      <ImportMovements open={importOpen} onOpenChange={setImportOpen} />
 
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <Table>
