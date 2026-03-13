@@ -85,68 +85,37 @@ const WarehouseLayout = () => {
         </TabsContent>
 
         <TabsContent value="grid" className="mt-4 space-y-4">
-        <div className="space-y-1">
-          <Label className="text-xs">Área</Label>
-          <Select value={filterArea} onValueChange={setFilterArea}>
-            <SelectTrigger className="w-32 h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              {areas.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Colunas</Label>
-          <Input
-            type="number"
-            min={2}
-            max={20}
-            value={columns}
-            onChange={e => setColumns(e.target.value)}
-            className="w-20 h-9"
-          />
-        </div>
-        <div className="flex gap-1 border border-border rounded-md p-0.5">
-          <Button
-            variant={viewMode === 'row' ? 'default' : 'ghost'}
-            size="sm"
-            className="h-8 px-2"
-            onClick={() => setViewMode('row')}
-          >
-            <List className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === 'grid' ? 'default' : 'ghost'}
-            size="sm"
-            className="h-8 px-2"
-            onClick={() => setViewMode('grid')}
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Summary bar */}
-        <div className="ml-auto flex gap-4 items-center text-sm">
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded bg-muted border border-border" />
-            <span className="text-muted-foreground text-xs">Vazio</span>
+          {/* Controls */}
+          <div className="flex flex-wrap gap-3 items-end">
+            <div className="space-y-1">
+              <Label className="text-xs">Área</Label>
+              <Select value={filterArea} onValueChange={setFilterArea}>
+                <SelectTrigger className="w-32 h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  {areas.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Colunas</Label>
+              <Input type="number" min={2} max={20} value={columns} onChange={e => setColumns(e.target.value)} className="w-20 h-9" />
+            </div>
+            <div className="flex gap-1 border border-border rounded-md p-0.5">
+              <Button variant={viewMode === 'row' ? 'default' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('row')}>
+                <List className="h-4 w-4" />
+              </Button>
+              <Button variant={viewMode === 'grid' ? 'default' : 'ghost'} size="sm" className="h-8 px-2" onClick={() => setViewMode('grid')}>
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="ml-auto flex gap-4 items-center text-sm">
+              <div className="flex items-center gap-2"><div className="h-3 w-3 rounded bg-muted border border-border" /><span className="text-muted-foreground text-xs">Vazio</span></div>
+              <div className="flex items-center gap-2"><div className="h-3 w-3 rounded bg-emerald-500/30 border border-emerald-500/40" /><span className="text-muted-foreground text-xs">&lt;50%</span></div>
+              <div className="flex items-center gap-2"><div className="h-3 w-3 rounded bg-amber-500/30 border border-amber-500/40" /><span className="text-muted-foreground text-xs">&lt;80%</span></div>
+              <div className="flex items-center gap-2"><div className="h-3 w-3 rounded bg-red-500/30 border border-red-500/40" /><span className="text-muted-foreground text-xs">≥100%</span></div>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded bg-emerald-500/30 border border-emerald-500/40" />
-            <span className="text-muted-foreground text-xs">&lt;50%</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded bg-amber-500/30 border border-amber-500/40" />
-            <span className="text-muted-foreground text-xs">&lt;80%</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded bg-red-500/30 border border-red-500/40" />
-            <span className="text-muted-foreground text-xs">≥100%</span>
-          </div>
-        </div>
-      </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
