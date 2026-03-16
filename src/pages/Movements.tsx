@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, ArrowRight, ArrowLeft, RefreshCw, Minus, RotateCcw, FileSpreadsheet } from 'lucide-react';
+import { Plus, ArrowRight, ArrowLeft, RefreshCw, Minus, RotateCcw, FileSpreadsheet, Pencil, Trash2 } from 'lucide-react';
 import ImportMovements from '@/components/ImportMovements';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Database } from '@/integrations/supabase/types';
@@ -33,6 +34,8 @@ const Movements = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [editingMovement, setEditingMovement] = useState<any>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: movements, isLoading } = useQuery({
     queryKey: ['movements'],
@@ -93,6 +96,70 @@ const Movements = () => {
     onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
   });
 
+  const updateMovement = useMutation({
+    mutationFn: async () => {
+      if (!editingMovement) return;
+      const { error } = await supabase.from('movements').update({
+        movement_type: form.movement_type,
+        product_id: form.product_id,
+        from_location_id: form.from_location_id || null,
+        to_location_id: form.to_location_id || null,
+        quantity: parseInt(form.quantity),
+        lot_number: form.lot_number || null,
+        reference_doc: form.reference_doc || null,
+        notes: form.notes || null,
+      }).eq('id', editingMovement.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['movements'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-movements'] });
+      toast({ title: 'Movimentação atualizada!' });
+      setDialogOpen(false);
+      setEditingMovement(null);
+      setForm({ movement_type: 'entrada', product_id: '', from_location_id: '', to_location_id: '', quantity: '', lot_number: '', reference_doc: '', notes: '' });
+    },
+    onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
+  });
+
+  const deleteMovement = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('movements').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['movements'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-movements'] });
+      toast({ title: 'Movimentação excluída!' });
+      setDeleteId(null);
+    },
+    onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
+  });
+
+  const openEdit = (m: any) => {
+    setEditingMovement(m);
+    setForm({
+      movement_type: m.movement_type,
+      product_id: m.product_id,
+      from_location_id: m.from_location_id || '',
+      to_location_id: m.to_location_id || '',
+      quantity: String(m.quantity),
+      lot_number: m.lot_number || '',
+      reference_doc: m.reference_doc || '',
+      notes: m.notes || '',
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingMovement) {
+      updateMovement.mutate();
+    } else {
+      createMovement.mutate();
+    }
+  };
+
   const filtered = movements?.filter(m => typeFilter === 'all' || m.movement_type === typeFilter) || [];
 
   const getLocationLabel = (id: string | null) => {
@@ -119,13 +186,19 @@ const Movements = () => {
           <Button variant="outline" onClick={() => setImportOpen(true)}>
             <FileSpreadsheet className="mr-2 h-4 w-4" /> Importar Excel
           </Button>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) {
+              setEditingMovement(null);
+              setForm({ movement_type: 'entrada', product_id: '', from_location_id: '', to_location_id: '', quantity: '', lot_number: '', reference_doc: '', notes: '' });
+            }
+          }}>
             <DialogTrigger asChild>
               <Button><Plus className="mr-2 h-4 w-4" /> Nova Movimentação</Button>
             </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Nova Movimentação</DialogTitle></DialogHeader>
-            <form onSubmit={e => { e.preventDefault(); createMovement.mutate(); }} className="space-y-4">
+            <DialogHeader><DialogTitle>{editingMovement ? 'Editar Movimentação' : 'Nova Movimentação'}</DialogTitle></DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label>Tipo</Label>
                 <Select value={form.movement_type} onValueChange={v => setForm(f => ({ ...f, movement_type: v as MovementType }))}>
@@ -186,7 +259,9 @@ const Movements = () => {
                 <Label>Observações</Label>
                 <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} />
               </div>
-              <Button type="submit" className="w-full" disabled={createMovement.isPending}>Registrar</Button>
+              <Button type="submit" className="w-full" disabled={createMovement.isPending || updateMovement.isPending}>
+                {editingMovement ? 'Salvar Alterações' : 'Registrar'}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -207,13 +282,14 @@ const Movements = () => {
               <TableHead>Qtd</TableHead>
               <TableHead>Lote</TableHead>
               <TableHead>Ref.</TableHead>
+              <TableHead className="w-20">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhuma movimentação</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Nenhuma movimentação</TableCell></TableRow>
             ) : (
               filtered.map(m => {
                 const config = TYPE_CONFIG[m.movement_type];
@@ -232,6 +308,16 @@ const Movements = () => {
                     <TableCell className="font-semibold">{m.quantity}</TableCell>
                     <TableCell className="text-xs">{m.lot_number || '—'}</TableCell>
                     <TableCell className="text-xs">{m.reference_doc || '—'}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(m)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteId(m.id)}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 );
               })
@@ -239,6 +325,21 @@ const Movements = () => {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir movimentação?</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteId && deleteMovement.mutate(deleteId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
