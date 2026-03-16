@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, ArrowRight, ArrowLeft, RefreshCw, Minus, RotateCcw, FileSpreadsheet } from 'lucide-react';
+import { Plus, ArrowRight, ArrowLeft, RefreshCw, Minus, RotateCcw, FileSpreadsheet, Pencil, Trash2 } from 'lucide-react';
 import ImportMovements from '@/components/ImportMovements';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Database } from '@/integrations/supabase/types';
