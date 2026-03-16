@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, ArrowUpDown } from 'lucide-react';
+import { Plus, Search, ArrowUpDown, Pencil, Trash2 } from 'lucide-react';
 import { format, isAfter } from 'date-fns';
 import ProductSkuCombobox from '@/components/ProductSkuCombobox';
 
@@ -26,6 +27,8 @@ const Inventory = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sortField, setSortField] = useState<'name' | 'quantity' | 'expiry'>('name');
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [deleteItem, setDeleteItem] = useState<any>(null);
 
   const { data: inventory, isLoading } = useQuery({
     queryKey: ['inventory'],
@@ -59,10 +62,17 @@ const Inventory = () => {
     },
   });
 
-  const [form, setForm] = useState({
+  const emptyForm = {
     product_id: '', location_id: '', quantity: '', lot_number: '',
     manufacturing_date: '', expiry_date: '', status_id: '',
-  });
+  };
+
+  const [form, setForm] = useState(emptyForm);
+
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ['inventory'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboard-inventory'] });
+  };
 
   const addInventory = useMutation({
     mutationFn: async () => {
@@ -89,14 +99,80 @@ const Inventory = () => {
       if (movError) throw movError;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['inventory'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-inventory'] });
+      invalidateAll();
       toast({ title: 'Sucesso', description: 'Estoque adicionado' });
       setDialogOpen(false);
-      setForm({ product_id: '', location_id: '', quantity: '', lot_number: '', manufacturing_date: '', expiry_date: '', status_id: '' });
+      setForm(emptyForm);
     },
     onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
   });
+
+  const updateInventory = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('inventory').update({
+        product_id: form.product_id,
+        location_id: form.location_id,
+        quantity: parseInt(form.quantity),
+        lot_number: form.lot_number || null,
+        manufacturing_date: form.manufacturing_date || null,
+        expiry_date: form.expiry_date || null,
+        status_id: form.status_id || null,
+      }).eq('id', editingItem.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateAll();
+      toast({ title: 'Sucesso', description: 'Estoque atualizado' });
+      setDialogOpen(false);
+      setEditingItem(null);
+      setForm(emptyForm);
+    },
+    onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
+  });
+
+  const deleteInventory = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('inventory').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateAll();
+      toast({ title: 'Sucesso', description: 'Registro excluído' });
+      setDeleteItem(null);
+    },
+    onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
+  });
+
+  const handleEdit = (item: any) => {
+    setEditingItem(item);
+    setForm({
+      product_id: item.product_id,
+      location_id: item.location_id,
+      quantity: String(item.quantity),
+      lot_number: item.lot_number || '',
+      manufacturing_date: item.manufacturing_date || '',
+      expiry_date: item.expiry_date || '',
+      status_id: item.status_id || '',
+    });
+    setDialogOpen(true);
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setEditingItem(null);
+      setForm(emptyForm);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingItem) {
+      updateInventory.mutate();
+    } else {
+      addInventory.mutate();
+    }
+  };
 
   const filtered = inventory?.filter(item => {
     const matchSearch = !search ||
@@ -117,6 +193,7 @@ const Inventory = () => {
   }) || [];
 
   const today = new Date();
+  const isPending = addInventory.isPending || updateInventory.isPending;
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -139,13 +216,15 @@ const Inventory = () => {
           </Select>
         </div>
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
             <Button><Plus className="mr-2 h-4 w-4" /> Entrada</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Nova Entrada de Estoque</DialogTitle></DialogHeader>
-            <form onSubmit={e => { e.preventDefault(); addInventory.mutate(); }} className="space-y-4">
+            <DialogHeader>
+              <DialogTitle>{editingItem ? 'Editar Estoque' : 'Nova Entrada de Estoque'}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label>Produto (digite o SKU)</Label>
                 <ProductSkuCombobox
@@ -191,15 +270,13 @@ const Inventory = () => {
                   <SelectContent>
                     <SelectItem value="none">Sem status</SelectItem>
                     {statuses?.map(s => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.name}
-                      </SelectItem>
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" className="w-full" disabled={addInventory.isPending}>
-                {addInventory.isPending ? 'Salvando...' : 'Registrar Entrada'}
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? 'Salvando...' : editingItem ? 'Salvar Alterações' : 'Registrar Entrada'}
               </Button>
             </form>
           </DialogContent>
@@ -224,13 +301,14 @@ const Inventory = () => {
                 <span className="flex items-center gap-1">Validade <ArrowUpDown className="h-3 w-3" /></span>
               </TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="w-20">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhum item encontrado</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Nenhum item encontrado</TableCell></TableRow>
             ) : (
               filtered.map(item => {
                 const isExpired = item.expiry_date && !isAfter(new Date(item.expiry_date), today);
@@ -261,6 +339,16 @@ const Inventory = () => {
                         </span>
                       ) : '—'}
                     </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(item)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteItem(item)}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 );
               })
@@ -268,6 +356,26 @@ const Inventory = () => {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!deleteItem} onOpenChange={open => !open && setDeleteItem(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir registro de estoque?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteItem && `"${deleteItem.products?.name}" — ${deleteItem.quantity} un em ${deleteItem.locations?.full_address}. Esta ação não pode ser desfeita.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteItem && deleteInventory.mutate(deleteItem.id)}
+            >
+              {deleteInventory.isPending ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
