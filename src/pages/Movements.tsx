@@ -186,13 +186,19 @@ const Movements = () => {
           <Button variant="outline" onClick={() => setImportOpen(true)}>
             <FileSpreadsheet className="mr-2 h-4 w-4" /> Importar Excel
           </Button>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) {
+              setEditingMovement(null);
+              setForm({ movement_type: 'entrada', product_id: '', from_location_id: '', to_location_id: '', quantity: '', lot_number: '', reference_doc: '', notes: '' });
+            }
+          }}>
             <DialogTrigger asChild>
               <Button><Plus className="mr-2 h-4 w-4" /> Nova Movimentação</Button>
             </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Nova Movimentação</DialogTitle></DialogHeader>
-            <form onSubmit={e => { e.preventDefault(); createMovement.mutate(); }} className="space-y-4">
+            <DialogHeader><DialogTitle>{editingMovement ? 'Editar Movimentação' : 'Nova Movimentação'}</DialogTitle></DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label>Tipo</Label>
                 <Select value={form.movement_type} onValueChange={v => setForm(f => ({ ...f, movement_type: v as MovementType }))}>
@@ -253,7 +259,9 @@ const Movements = () => {
                 <Label>Observações</Label>
                 <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} />
               </div>
-              <Button type="submit" className="w-full" disabled={createMovement.isPending}>Registrar</Button>
+              <Button type="submit" className="w-full" disabled={createMovement.isPending || updateMovement.isPending}>
+                {editingMovement ? 'Salvar Alterações' : 'Registrar'}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
