@@ -96,6 +96,70 @@ const Movements = () => {
     onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
   });
 
+  const updateMovement = useMutation({
+    mutationFn: async () => {
+      if (!editingMovement) return;
+      const { error } = await supabase.from('movements').update({
+        movement_type: form.movement_type,
+        product_id: form.product_id,
+        from_location_id: form.from_location_id || null,
+        to_location_id: form.to_location_id || null,
+        quantity: parseInt(form.quantity),
+        lot_number: form.lot_number || null,
+        reference_doc: form.reference_doc || null,
+        notes: form.notes || null,
+      }).eq('id', editingMovement.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['movements'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-movements'] });
+      toast({ title: 'Movimentação atualizada!' });
+      setDialogOpen(false);
+      setEditingMovement(null);
+      setForm({ movement_type: 'entrada', product_id: '', from_location_id: '', to_location_id: '', quantity: '', lot_number: '', reference_doc: '', notes: '' });
+    },
+    onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
+  });
+
+  const deleteMovement = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('movements').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['movements'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-movements'] });
+      toast({ title: 'Movimentação excluída!' });
+      setDeleteId(null);
+    },
+    onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
+  });
+
+  const openEdit = (m: any) => {
+    setEditingMovement(m);
+    setForm({
+      movement_type: m.movement_type,
+      product_id: m.product_id,
+      from_location_id: m.from_location_id || '',
+      to_location_id: m.to_location_id || '',
+      quantity: String(m.quantity),
+      lot_number: m.lot_number || '',
+      reference_doc: m.reference_doc || '',
+      notes: m.notes || '',
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingMovement) {
+      updateMovement.mutate();
+    } else {
+      createMovement.mutate();
+    }
+  };
+
   const filtered = movements?.filter(m => typeFilter === 'all' || m.movement_type === typeFilter) || [];
 
   const getLocationLabel = (id: string | null) => {
