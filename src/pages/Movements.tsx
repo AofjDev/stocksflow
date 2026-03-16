@@ -34,6 +34,8 @@ const Movements = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [editingMovement, setEditingMovement] = useState<any>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: movements, isLoading } = useQuery({
     queryKey: ['movements'],
