@@ -69,6 +69,94 @@ export type Database = {
           },
         ]
       }
+      damage_photos: {
+        Row: {
+          created_at: string
+          damage_id: string
+          id: string
+          photo_url: string
+        }
+        Insert: {
+          created_at?: string
+          damage_id: string
+          id?: string
+          photo_url: string
+        }
+        Update: {
+          created_at?: string
+          damage_id?: string
+          id?: string
+          photo_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "damage_photos_damage_id_fkey"
+            columns: ["damage_id"]
+            isOneToOne: false
+            referencedRelation: "damages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      damages: {
+        Row: {
+          created_at: string
+          created_by: string
+          damage_date: string
+          id: string
+          material_type: string
+          notes: string | null
+          order_number: string | null
+          product_id: string | null
+          quantity: number
+          responsible: string
+          scanned_code: string | null
+          sku: string | null
+          sold: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          damage_date?: string
+          id?: string
+          material_type?: string
+          notes?: string | null
+          order_number?: string | null
+          product_id?: string | null
+          quantity?: number
+          responsible: string
+          scanned_code?: string | null
+          sku?: string | null
+          sold?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          damage_date?: string
+          id?: string
+          material_type?: string
+          notes?: string | null
+          order_number?: string | null
+          product_id?: string | null
+          quantity?: number
+          responsible?: string
+          scanned_code?: string | null
+          sku?: string | null
+          sold?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "damages_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory: {
         Row: {
           expiry_date: string | null
@@ -442,6 +530,77 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      task_statuses: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          status_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "task_statuses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
