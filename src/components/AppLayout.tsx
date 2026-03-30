@@ -19,6 +19,9 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
     { to: '/movimentacoes', icon: ArrowLeftRight, label: 'Movimentações' },
     { to: '/nao-conformidades', icon: AlertTriangle, label: 'Não Conformidades' },
     { to: '/contagens', icon: ClipboardCheck, label: 'Contagens' },
+    { to: '/avarias', icon: ShieldAlert, label: 'Avarias' },
+    { to: '/tarefas', icon: ListTodo, label: 'Tarefas' },
+    { to: '/relatorio-diario', icon: FileText, label: 'Relatório Diário' },
     { to: '/assistente', icon: Bot, label: 'Assistente IA' },
     { to: '/guia', icon: BookOpen, label: 'Guia do Sistema' },
     ...(isAdmin ? [
