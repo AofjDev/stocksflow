@@ -18,6 +18,7 @@ import { Camera, Plus, Edit2, Image as ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseQRCode } from '@/lib/qrcode-parser';
+import { startQRScanner } from '@/lib/camera-permissions';
 
 const Damages = () => {
   const { user } = useAuth();
