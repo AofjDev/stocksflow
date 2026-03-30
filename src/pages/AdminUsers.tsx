@@ -68,6 +68,14 @@ const AdminUsers = () => {
                         >
                           <CheckCircle className="h-3.5 w-3.5" /> Aprovar
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => updateProfile.mutate({ userId: p.user_id, updates: { approved: false } })}
+                          className="gap-1"
+                        >
+                          <XCircle className="h-3.5 w-3.5" /> Reprovar
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
