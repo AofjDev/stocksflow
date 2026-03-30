@@ -261,7 +261,7 @@ const Counts = () => {
                   </div>
 
                   <div className="flex gap-2 items-end">
-                    <Button variant="outline" onClick={scannerActive ? stopScanner : startScanner} className="gap-2">
+                    <Button variant="outline" onClick={scannerActive ? stopScanner : handleStartScanner} className="gap-2">
                       <Camera className="h-4 w-4" /> {scannerActive ? 'Parar Scanner' : 'Escanear QR'}
                     </Button>
                     <div>

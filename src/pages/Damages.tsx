@@ -207,7 +207,7 @@ const Damages = () => {
               <CardHeader><CardTitle className="text-base">Nova Avaria</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex gap-2 items-end">
-                  <Button variant="outline" onClick={scannerActive ? () => { scannerRef.current?.stop().catch(() => {}); setScannerActive(false); } : startScanner} className="gap-2">
+                  <Button variant="outline" onClick={scannerActive ? () => { scannerRef.current?.stop().catch(() => {}); setScannerActive(false); } : handleStartScanner} className="gap-2">
                     <Camera className="h-4 w-4" /> {scannerActive ? 'Parar' : 'Escanear QR'}
                   </Button>
                 </div>
