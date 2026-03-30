@@ -17,6 +17,7 @@ import { QrCode, Plus, Upload, Trash2, Camera } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseQRCode } from '@/lib/qrcode-parser';
+import { startQRScanner } from '@/lib/camera-permissions';
 import * as XLSX from 'xlsx';
 
 type CountItem = {
@@ -131,30 +132,31 @@ const Counts = () => {
     toast({ title: 'Item escaneado!', description: `${product?.name || parsed.materialCode} — Qtd: ${parsed.quantity}` });
   }, [products, toast]);
 
-  const startScanner = async () => {
-    try {
-      const { Html5Qrcode } = await import('html5-qrcode');
-      const scanner = new Html5Qrcode('qr-reader');
-      scannerRef.current = scanner;
-      setScannerActive(true);
-      await scanner.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        (text) => {
-          processQRCode(text);
-          scanner.stop().catch(() => {});
-          setScannerActive(false);
-        },
-        () => {}
-      );
-    } catch (e: any) {
-      toast({ title: 'Erro ao abrir câmera', description: e.message, variant: 'destructive' });
+  const handleStartScanner = async () => {
+    setScannerActive(true);
+    // Small delay to ensure the DOM element is rendered
+    await new Promise(r => setTimeout(r, 100));
+    const result = await startQRScanner(
+      'qr-reader',
+      (text) => {
+        processQRCode(text);
+        setScannerActive(false);
+      },
+      (error) => {
+        toast({ title: 'Erro na câmera', description: error, variant: 'destructive' });
+        setScannerActive(false);
+      }
+    );
+    if (result) {
+      scannerRef.current = result;
+    } else {
       setScannerActive(false);
     }
   };
 
   const stopScanner = () => {
     scannerRef.current?.stop().catch(() => {});
+    scannerRef.current = null;
     setScannerActive(false);
   };
 
@@ -259,7 +261,7 @@ const Counts = () => {
                   </div>
 
                   <div className="flex gap-2 items-end">
-                    <Button variant="outline" onClick={scannerActive ? stopScanner : startScanner} className="gap-2">
+                    <Button variant="outline" onClick={scannerActive ? stopScanner : handleStartScanner} className="gap-2">
                       <Camera className="h-4 w-4" /> {scannerActive ? 'Parar Scanner' : 'Escanear QR'}
                     </Button>
                     <div>

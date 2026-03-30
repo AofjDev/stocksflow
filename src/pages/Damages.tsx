@@ -18,6 +18,7 @@ import { Camera, Plus, Edit2, Image as ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseQRCode } from '@/lib/qrcode-parser';
+import { startQRScanner } from '@/lib/camera-permissions';
 
 const Damages = () => {
   const { user } = useAuth();
@@ -57,24 +58,23 @@ const Damages = () => {
     },
   });
 
-  const startScanner = async () => {
-    try {
-      const { Html5Qrcode } = await import('html5-qrcode');
-      const scanner = new Html5Qrcode('damage-qr-reader');
-      scannerRef.current = scanner;
-      setScannerActive(true);
-      await scanner.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        (text) => {
-          processQR(text);
-          scanner.stop().catch(() => {});
-          setScannerActive(false);
-        },
-        () => {}
-      );
-    } catch (e: any) {
-      toast({ title: 'Erro câmera', description: e.message, variant: 'destructive' });
+  const handleStartScanner = async () => {
+    setScannerActive(true);
+    await new Promise(r => setTimeout(r, 100));
+    const result = await startQRScanner(
+      'damage-qr-reader',
+      (text) => {
+        processQR(text);
+        setScannerActive(false);
+      },
+      (error) => {
+        toast({ title: 'Erro na câmera', description: error, variant: 'destructive' });
+        setScannerActive(false);
+      }
+    );
+    if (result) {
+      scannerRef.current = result;
+    } else {
       setScannerActive(false);
     }
   };
@@ -207,7 +207,7 @@ const Damages = () => {
               <CardHeader><CardTitle className="text-base">Nova Avaria</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex gap-2 items-end">
-                  <Button variant="outline" onClick={scannerActive ? () => { scannerRef.current?.stop().catch(() => {}); setScannerActive(false); } : startScanner} className="gap-2">
+                  <Button variant="outline" onClick={scannerActive ? () => { scannerRef.current?.stop().catch(() => {}); setScannerActive(false); } : handleStartScanner} className="gap-2">
                     <Camera className="h-4 w-4" /> {scannerActive ? 'Parar' : 'Escanear QR'}
                   </Button>
                 </div>
