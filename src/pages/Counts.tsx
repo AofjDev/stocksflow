@@ -17,6 +17,7 @@ import { QrCode, Plus, Upload, Trash2, Camera } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseQRCode } from '@/lib/qrcode-parser';
+import { startQRScanner } from '@/lib/camera-permissions';
 import * as XLSX from 'xlsx';
 
 type CountItem = {
