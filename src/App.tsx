@@ -17,6 +17,7 @@ import InventoryStatuses from "@/pages/InventoryStatuses";
 import Products from "@/pages/Products";
 import WarehouseLayout from "@/pages/WarehouseLayout";
 import ResetPassword from "@/pages/ResetPassword";
+import Assistant from "@/pages/Assistant";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/layout" element={<ProtectedRoute><WarehouseLayout /></ProtectedRoute>} />
             <Route path="/movimentacoes" element={<ProtectedRoute><Movements /></ProtectedRoute>} />
             <Route path="/nao-conformidades" element={<ProtectedRoute><NonConformities /></ProtectedRoute>} />
+            <Route path="/assistente" element={<ProtectedRoute><Assistant /></ProtectedRoute>} />
             <Route path="/admin/usuarios" element={<ProtectedRoute adminOnly><AdminUsers /></ProtectedRoute>} />
             <Route path="/admin/status" element={<ProtectedRoute adminOnly><InventoryStatuses /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
