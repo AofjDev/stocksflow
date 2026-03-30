@@ -17,6 +17,7 @@ import InventoryStatuses from "@/pages/InventoryStatuses";
 import Products from "@/pages/Products";
 import WarehouseLayout from "@/pages/WarehouseLayout";
 import ResetPassword from "@/pages/ResetPassword";
+import Assistant from "@/pages/Assistant";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
