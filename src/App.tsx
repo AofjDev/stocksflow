@@ -20,6 +20,9 @@ import ResetPassword from "@/pages/ResetPassword";
 import Assistant from "@/pages/Assistant";
 import Guide from "@/pages/Guide";
 import Counts from "@/pages/Counts";
+import Tasks from "@/pages/Tasks";
+import Damages from "@/pages/Damages";
+import DailyReport from "@/pages/DailyReport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,6 +63,9 @@ const App = () => (
             <Route path="/nao-conformidades" element={<ProtectedRoute><NonConformities /></ProtectedRoute>} />
             <Route path="/assistente" element={<ProtectedRoute><Assistant /></ProtectedRoute>} />
             <Route path="/contagens" element={<ProtectedRoute><Counts /></ProtectedRoute>} />
+            <Route path="/tarefas" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
+            <Route path="/avarias" element={<ProtectedRoute><Damages /></ProtectedRoute>} />
+            <Route path="/relatorio-diario" element={<ProtectedRoute><DailyReport /></ProtectedRoute>} />
             <Route path="/guia" element={<ProtectedRoute><Guide /></ProtectedRoute>} />
             <Route path="/admin/usuarios" element={<ProtectedRoute adminOnly><AdminUsers /></ProtectedRoute>} />
             <Route path="/admin/status" element={<ProtectedRoute adminOnly><InventoryStatuses /></ProtectedRoute>} />

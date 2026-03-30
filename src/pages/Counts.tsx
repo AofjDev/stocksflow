@@ -104,6 +104,8 @@ const Counts = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['inventory-counts'] });
       qc.invalidateQueries({ queryKey: ['count-items-history'] });
+      qc.invalidateQueries({ queryKey: ['inventory'] });
+      qc.invalidateQueries({ queryKey: ['warehouse-layout'] });
       toast({ title: 'Contagem salva!' });
       setItems([]);
       setShowNewCount(false);
