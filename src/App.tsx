@@ -20,6 +20,9 @@ import ResetPassword from "@/pages/ResetPassword";
 import Assistant from "@/pages/Assistant";
 import Guide from "@/pages/Guide";
 import Counts from "@/pages/Counts";
+import Tasks from "@/pages/Tasks";
+import Damages from "@/pages/Damages";
+import DailyReport from "@/pages/DailyReport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
