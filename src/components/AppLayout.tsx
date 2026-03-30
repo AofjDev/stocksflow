@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, Package, MapPin, ArrowLeftRight, AlertTriangle, LogOut, Menu, X, Warehouse, Users, Tags, BoxesIcon, Grid3X3, Bot } from 'lucide-react';
+import { LayoutDashboard, Package, MapPin, ArrowLeftRight, AlertTriangle, LogOut, Menu, X, Warehouse, Users, Tags, BoxesIcon, Grid3X3, Bot, ClipboardCheck, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -18,7 +18,9 @@ const AppLayout = ({ children }: { children: ReactNode }) => {
     { to: '/layout', icon: Grid3X3, label: 'Layout' },
     { to: '/movimentacoes', icon: ArrowLeftRight, label: 'Movimentações' },
     { to: '/nao-conformidades', icon: AlertTriangle, label: 'Não Conformidades' },
+    { to: '/contagens', icon: ClipboardCheck, label: 'Contagens' },
     { to: '/assistente', icon: Bot, label: 'Assistente IA' },
+    { to: '/guia', icon: BookOpen, label: 'Guia do Sistema' },
     ...(isAdmin ? [
       { to: '/admin/usuarios', icon: Users, label: 'Usuários' },
       { to: '/admin/status', icon: Tags, label: 'Status Estoque' },

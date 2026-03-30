@@ -1,15 +1,23 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, Shield, ShieldOff } from 'lucide-react';
+import { CheckCircle, XCircle, Shield, ShieldOff, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const AdminUsers = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [rejectUserId, setRejectUserId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ full_name: '', role: '' });
 
   const { data: profiles, isLoading } = useQuery({
     queryKey: ['admin-profiles'],
@@ -20,16 +28,43 @@ const AdminUsers = () => {
   });
 
   const updateProfile = useMutation({
-    mutationFn: async ({ userId, updates }: { userId: string; updates: { approved?: boolean; is_admin?: boolean } }) => {
+    mutationFn: async ({ userId, updates }: { userId: string; updates: Record<string, any> }) => {
       const { error } = await supabase.from('profiles').update(updates).eq('user_id', userId);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-profiles'] });
       toast({ title: 'Usuário atualizado!' });
+      setEditingUser(null);
     },
     onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
   });
+
+  const rejectUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({ user_id: userId }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Erro ao reprovar');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-profiles'] });
+      toast({ title: 'Usuário reprovado e removido!' });
+      setRejectUserId(null);
+    },
+    onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
+  });
+
+  const openEdit = (p: any) => {
+    setEditForm({ full_name: p.full_name, role: p.role });
+    setEditingUser(p);
+  };
 
   const pending = profiles?.filter(p => !p.approved) || [];
   const approved = profiles?.filter(p => p.approved) || [];
@@ -61,19 +96,10 @@ const AdminUsers = () => {
                     <TableCell className="text-xs font-mono">{format(new Date(p.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => updateProfile.mutate({ userId: p.user_id, updates: { approved: true } })}
-                          className="gap-1"
-                        >
+                        <Button size="sm" onClick={() => updateProfile.mutate({ userId: p.user_id, updates: { approved: true } })} className="gap-1">
                           <CheckCircle className="h-3.5 w-3.5" /> Aprovar
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => updateProfile.mutate({ userId: p.user_id, updates: { approved: false } })}
-                          className="gap-1"
-                        >
+                        <Button size="sm" variant="destructive" onClick={() => setRejectUserId(p.user_id)} className="gap-1">
                           <XCircle className="h-3.5 w-3.5" /> Reprovar
                         </Button>
                       </div>
@@ -120,20 +146,13 @@ const AdminUsers = () => {
                     <TableCell className="text-xs font-mono">{format(new Date(p.created_at), "dd/MM/yy", { locale: ptBR })}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => updateProfile.mutate({ userId: p.user_id, updates: { is_admin: !p.is_admin } })}
-                          title={p.is_admin ? 'Remover admin' : 'Tornar admin'}
-                        >
+                        <Button size="sm" variant="ghost" onClick={() => openEdit(p)} title="Editar">
+                          <Pencil className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => updateProfile.mutate({ userId: p.user_id, updates: { is_admin: !p.is_admin } })} title={p.is_admin ? 'Remover admin' : 'Tornar admin'}>
                           {p.is_admin ? <ShieldOff className="h-4 w-4 text-muted-foreground" /> : <Shield className="h-4 w-4 text-primary" />}
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => updateProfile.mutate({ userId: p.user_id, updates: { approved: false } })}
-                          title="Revogar acesso"
-                        >
+                        <Button size="sm" variant="ghost" onClick={() => setRejectUserId(p.user_id)} title="Remover usuário">
                           <XCircle className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
@@ -145,6 +164,42 @@ const AdminUsers = () => {
           </Table>
         </div>
       </div>
+
+      {/* Edit dialog */}
+      <Dialog open={!!editingUser} onOpenChange={o => !o && setEditingUser(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Usuário</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nome completo</Label>
+              <Input value={editForm.full_name} onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))} />
+            </div>
+            <div>
+              <Label>Cargo</Label>
+              <Input value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))} />
+            </div>
+            <Button className="w-full" onClick={() => updateProfile.mutate({ userId: editingUser.user_id, updates: editForm })}>
+              Salvar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject confirm */}
+      <AlertDialog open={!!rejectUserId} onOpenChange={o => !o && setRejectUserId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar remoção</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação irá remover permanentemente a conta do usuário. Não poderá ser desfeita.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => rejectUserId && rejectUser.mutate(rejectUserId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
