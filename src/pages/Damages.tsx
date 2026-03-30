@@ -58,24 +58,23 @@ const Damages = () => {
     },
   });
 
-  const startScanner = async () => {
-    try {
-      const { Html5Qrcode } = await import('html5-qrcode');
-      const scanner = new Html5Qrcode('damage-qr-reader');
-      scannerRef.current = scanner;
-      setScannerActive(true);
-      await scanner.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        (text) => {
-          processQR(text);
-          scanner.stop().catch(() => {});
-          setScannerActive(false);
-        },
-        () => {}
-      );
-    } catch (e: any) {
-      toast({ title: 'Erro câmera', description: e.message, variant: 'destructive' });
+  const handleStartScanner = async () => {
+    setScannerActive(true);
+    await new Promise(r => setTimeout(r, 100));
+    const result = await startQRScanner(
+      'damage-qr-reader',
+      (text) => {
+        processQR(text);
+        setScannerActive(false);
+      },
+      (error) => {
+        toast({ title: 'Erro na câmera', description: error, variant: 'destructive' });
+        setScannerActive(false);
+      }
+    );
+    if (result) {
+      scannerRef.current = result;
+    } else {
       setScannerActive(false);
     }
   };

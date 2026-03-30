@@ -132,30 +132,31 @@ const Counts = () => {
     toast({ title: 'Item escaneado!', description: `${product?.name || parsed.materialCode} — Qtd: ${parsed.quantity}` });
   }, [products, toast]);
 
-  const startScanner = async () => {
-    try {
-      const { Html5Qrcode } = await import('html5-qrcode');
-      const scanner = new Html5Qrcode('qr-reader');
-      scannerRef.current = scanner;
-      setScannerActive(true);
-      await scanner.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        (text) => {
-          processQRCode(text);
-          scanner.stop().catch(() => {});
-          setScannerActive(false);
-        },
-        () => {}
-      );
-    } catch (e: any) {
-      toast({ title: 'Erro ao abrir câmera', description: e.message, variant: 'destructive' });
+  const handleStartScanner = async () => {
+    setScannerActive(true);
+    // Small delay to ensure the DOM element is rendered
+    await new Promise(r => setTimeout(r, 100));
+    const result = await startQRScanner(
+      'qr-reader',
+      (text) => {
+        processQRCode(text);
+        setScannerActive(false);
+      },
+      (error) => {
+        toast({ title: 'Erro na câmera', description: error, variant: 'destructive' });
+        setScannerActive(false);
+      }
+    );
+    if (result) {
+      scannerRef.current = result;
+    } else {
       setScannerActive(false);
     }
   };
 
   const stopScanner = () => {
     scannerRef.current?.stop().catch(() => {});
+    scannerRef.current = null;
     setScannerActive(false);
   };
 
