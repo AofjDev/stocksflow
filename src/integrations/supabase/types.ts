@@ -14,6 +14,61 @@ export type Database = {
   }
   public: {
     Tables: {
+      count_items: {
+        Row: {
+          count_id: string
+          created_at: string
+          id: string
+          location_id: string | null
+          product_id: string | null
+          quantity: number
+          scanned_code: string | null
+          sku: string | null
+        }
+        Insert: {
+          count_id: string
+          created_at?: string
+          id?: string
+          location_id?: string | null
+          product_id?: string | null
+          quantity?: number
+          scanned_code?: string | null
+          sku?: string | null
+        }
+        Update: {
+          count_id?: string
+          created_at?: string
+          id?: string
+          location_id?: string | null
+          product_id?: string | null
+          quantity?: number
+          scanned_code?: string | null
+          sku?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "count_items_count_id_fkey"
+            columns: ["count_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_counts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "count_items_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "count_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory: {
         Row: {
           expiry_date: string | null
@@ -74,6 +129,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      inventory_counts: {
+        Row: {
+          count_date: string
+          count_type: string
+          created_at: string
+          id: string
+          notes: string | null
+          performed_by: string
+        }
+        Insert: {
+          count_date?: string
+          count_type?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          performed_by: string
+        }
+        Update: {
+          count_date?: string
+          count_type?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          performed_by?: string
+        }
+        Relationships: []
       }
       inventory_statuses: {
         Row: {
