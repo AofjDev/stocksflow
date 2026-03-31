@@ -117,6 +117,23 @@ const Counts = () => {
     onError: (e: any) => toast({ title: 'Erro', description: e.message, variant: 'destructive' }),
   });
 
+  const deleteCount = useMutation({
+    mutationFn: async (id: string) => {
+      // Delete items first, then the count
+      const { error: itemErr } = await supabase.from('count_items').delete().eq('count_id', id);
+      if (itemErr) throw itemErr;
+      const { error } = await supabase.from('inventory_counts').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['inventory-counts'] });
+      qc.invalidateQueries({ queryKey: ['count-items-history'] });
+      toast({ title: 'Contagem excluída!' });
+      setDeleteCountId(null);
+    },
+    onError: (e: any) => toast({ title: 'Erro', description: e.message, variant: 'destructive' }),
+  });
+
   const processQRCode = useCallback((code: string) => {
     const parsed = parseQRCode(code);
     if (!parsed.valid) {
