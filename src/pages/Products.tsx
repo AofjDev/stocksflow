@@ -256,6 +256,9 @@ const Products = () => {
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toggleActive.mutate({ id: p.id, active: !p.active })}>
                       <Power className={cn("h-3.5 w-3.5", p.active ? "text-success" : "text-muted-foreground")} />
                     </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(p.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -263,6 +266,21 @@ const Products = () => {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!deleteId} onOpenChange={open => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir material?</AlertDialogTitle>
+            <AlertDialogDescription>Este material será removido permanentemente. Se houver registros vinculados (estoque, movimentações), a exclusão poderá falhar.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteId && deleteProduct.mutate(deleteId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
