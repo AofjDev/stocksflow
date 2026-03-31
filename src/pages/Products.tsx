@@ -95,6 +95,20 @@ const Products = () => {
     onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
   });
 
+  const deleteProduct = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('products').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products-all'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({ title: 'Material excluído!' });
+      setDeleteId(null);
+    },
+    onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
+  });
+
   const closeDialog = () => {
     setDialogOpen(false);
     setEditingId(null);
