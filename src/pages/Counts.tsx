@@ -399,11 +399,12 @@ const Counts = () => {
                   <TableHead>Tipo</TableHead>
                   <TableHead>Itens</TableHead>
                   <TableHead>Criado em</TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {!counts?.length ? (
-                  <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Nenhuma contagem registrada</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhuma contagem registrada</TableCell></TableRow>
                 ) : counts.map(c => {
                   const itemCount = countItemsHistory?.filter(ci => ci.count_id === c.id).length || 0;
                   return (
@@ -412,6 +413,11 @@ const Counts = () => {
                       <TableCell><Badge variant="outline">{c.count_type === 'diario' ? 'Diário' : 'Mensal'}</Badge></TableCell>
                       <TableCell>{itemCount}</TableCell>
                       <TableCell className="text-xs font-mono">{format(new Date(c.created_at), 'dd/MM/yy HH:mm', { locale: ptBR })}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteCountId(c.id)}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
