@@ -46,6 +46,7 @@ const Counts = () => {
   const [manualSku, setManualSku] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const scannerRef = useRef<any>(null);
+  const [deleteCountId, setDeleteCountId] = useState<string | null>(null);
 
   const { data: products } = useQuery({
     queryKey: ['products-list'],
