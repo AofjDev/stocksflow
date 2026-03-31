@@ -452,6 +452,21 @@ const Counts = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={!!deleteCountId} onOpenChange={open => !open && setDeleteCountId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir contagem?</AlertDialogTitle>
+            <AlertDialogDescription>Todos os itens desta contagem serão excluídos. Esta ação não pode ser desfeita.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteCountId && deleteCount.mutate(deleteCountId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
