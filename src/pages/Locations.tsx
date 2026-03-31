@@ -151,9 +151,16 @@ const Locations = () => {
                   </Select>
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={saveMutation.isPending}>
-                {editingId ? 'Salvar Alterações' : 'Criar Endereço'}
-              </Button>
+              <div className="flex gap-2">
+                <Button type="submit" className="flex-1" disabled={saveMutation.isPending}>
+                  {editingId ? 'Salvar Alterações' : 'Criar Endereço'}
+                </Button>
+                {editingId && (
+                  <Button type="button" variant="destructive" onClick={() => { closeDialog(); setDeleteId(editingId); }}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </form>
           </DialogContent>
         </Dialog>
