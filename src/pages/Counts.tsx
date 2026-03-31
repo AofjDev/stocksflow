@@ -36,6 +36,7 @@ const Counts = () => {
   const qc = useQueryClient();
   const [showNewCount, setShowNewCount] = useState(false);
   const [countType, setCountType] = useState<string>('diario');
+  const [countDate, setCountDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [items, setItems] = useState<CountItem[]>([]);
   const [scannerActive, setScannerActive] = useState(false);
   const [manualCode, setManualCode] = useState('');
