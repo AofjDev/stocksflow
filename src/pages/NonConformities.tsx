@@ -9,8 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, CheckCircle } from 'lucide-react';
+import { Plus, CheckCircle, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Database } from '@/integrations/supabase/types';
@@ -44,12 +45,23 @@ const DAMAGE_LABELS: Record<string, string> = {
   if: 'IF – Descarte',
 };
 
+const EMPTY_FORM = {
+  type: 'divergencia_quantidade' as NCType,
+  status: 'aberta' as NCStatus,
+  product_id: '', location_id: '', lot_number: '',
+  description: '', expected_value: '', actual_value: '',
+  damage_classification: '', corrective_action: '',
+};
+
 const NonConformities = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [form, setForm] = useState(EMPTY_FORM);
 
   const { data: ncs, isLoading } = useQuery({
     queryKey: ['nonconformities'],
@@ -78,54 +90,81 @@ const NonConformities = () => {
     },
   });
 
-  const [form, setForm] = useState({
-    type: 'divergencia_quantidade' as NCType,
-    product_id: '', location_id: '', lot_number: '',
-    description: '', expected_value: '', actual_value: '',
-    damage_classification: '',
-  });
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+  };
 
-  const createNC = useMutation({
+  const saveNC = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('nonconformities').insert({
+      const payload = {
         type: form.type,
+        status: form.status,
         product_id: form.product_id || null,
         location_id: form.location_id || null,
         lot_number: form.lot_number || null,
         description: form.description,
         expected_value: form.expected_value || null,
         actual_value: form.actual_value || null,
-        reported_by: user!.id,
+        corrective_action: form.corrective_action || null,
         damage_classification: form.type === 'produto_avariado' && form.damage_classification ? form.damage_classification as any : null,
-      });
-      if (error) throw error;
+      };
+      if (editingId) {
+        const updatePayload: any = { ...payload };
+        if (form.status === 'resolvida' || form.status === 'encerrada') {
+          updatePayload.resolved_by = user!.id;
+          updatePayload.resolved_at = new Date().toISOString();
+        }
+        const { error } = await supabase.from('nonconformities').update(updatePayload).eq('id', editingId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('nonconformities').insert({
+          ...payload,
+          reported_by: user!.id,
+        });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['nonconformities'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-nc'] });
-      toast({ title: 'NC registrada!' });
-      setDialogOpen(false);
-      setForm({ type: 'divergencia_quantidade', product_id: '', location_id: '', lot_number: '', description: '', expected_value: '', actual_value: '', damage_classification: '' });
+      toast({ title: editingId ? 'NC atualizada!' : 'NC registrada!' });
+      closeDialog();
     },
     onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
   });
 
-  const resolveNC = useMutation({
-    mutationFn: async ({ id, action }: { id: string; action: string }) => {
-      const { error } = await supabase.from('nonconformities').update({
-        status: 'resolvida' as NCStatus,
-        corrective_action: action,
-        resolved_by: user!.id,
-        resolved_at: new Date().toISOString(),
-      }).eq('id', id);
+  const deleteNC = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('nonconformities').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['nonconformities'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-nc'] });
-      toast({ title: 'NC resolvida!' });
+      toast({ title: 'NC excluída!' });
+      setDeleteId(null);
     },
+    onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
   });
+
+  const openEdit = (nc: any) => {
+    setEditingId(nc.id);
+    setForm({
+      type: nc.type,
+      status: nc.status,
+      product_id: nc.product_id || '',
+      location_id: nc.location_id || '',
+      lot_number: nc.lot_number || '',
+      description: nc.description,
+      expected_value: nc.expected_value || '',
+      actual_value: nc.actual_value || '',
+      damage_classification: nc.damage_classification || '',
+      corrective_action: nc.corrective_action || '',
+    });
+    setDialogOpen(true);
+  };
 
   const filtered = ncs?.filter(nc => statusFilter === 'all' || nc.status === statusFilter) || [];
 
@@ -144,39 +183,56 @@ const NonConformities = () => {
           </SelectContent>
         </Select>
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={dialogOpen} onOpenChange={v => { if (!v) closeDialog(); else setDialogOpen(true); }}>
           <DialogTrigger asChild>
             <Button variant="destructive"><Plus className="mr-2 h-4 w-4" /> Registrar NC</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Registrar Não Conformidade</DialogTitle></DialogHeader>
-            <form onSubmit={e => { e.preventDefault(); createNC.mutate(); }} className="space-y-4">
-              <div className="space-y-2">
-                <Label>Tipo</Label>
-                <Select value={form.type} onValueChange={v => setForm(f => ({ ...f, type: v as NCType }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(TYPE_LABELS).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <DialogHeader><DialogTitle>{editingId ? 'Editar NC' : 'Registrar Não Conformidade'}</DialogTitle></DialogHeader>
+            <form onSubmit={e => { e.preventDefault(); saveNC.mutate(); }} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Tipo</Label>
+                  <Select value={form.type} onValueChange={v => setForm(f => ({ ...f, type: v as NCType }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(TYPE_LABELS).map(([k, v]) => (
+                        <SelectItem key={k} value={k}>{v}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {editingId && (
+                  <div className="space-y-2">
+                    <Label>Status</Label>
+                    <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v as NCStatus }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(STATUS_LABELS).map(([k, v]) => (
+                          <SelectItem key={k} value={k}>{v}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>Produto</Label>
-                  <Select value={form.product_id} onValueChange={v => setForm(f => ({ ...f, product_id: v }))}>
+                  <Select value={form.product_id || 'none'} onValueChange={v => setForm(f => ({ ...f, product_id: v === 'none' ? '' : v }))}>
                     <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {products?.map(p => <SelectItem key={p.id} value={p.id}>{p.sku}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Endereço</Label>
-                  <Select value={form.location_id} onValueChange={v => setForm(f => ({ ...f, location_id: v }))}>
+                  <Select value={form.location_id || 'none'} onValueChange={v => setForm(f => ({ ...f, location_id: v === 'none' ? '' : v }))}>
                     <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {locations?.map(l => <SelectItem key={l.id} value={l.id}>{l.full_address}</SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -188,10 +244,11 @@ const NonConformities = () => {
               </div>
               {form.type === 'produto_avariado' && (
                 <div className="space-y-2">
-                  <Label>Classificação da Avaria *</Label>
-                  <Select value={form.damage_classification} onValueChange={v => setForm(f => ({ ...f, damage_classification: v }))}>
+                  <Label>Classificação da Avaria</Label>
+                  <Select value={form.damage_classification || 'none'} onValueChange={v => setForm(f => ({ ...f, damage_classification: v === 'none' ? '' : v }))}>
                     <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="none">Nenhuma</SelectItem>
                       <SelectItem value="pav">PAV – Produto p/ venda c/ desconto</SelectItem>
                       <SelectItem value="if">IF – Produto p/ descarte</SelectItem>
                     </SelectContent>
@@ -208,7 +265,15 @@ const NonConformities = () => {
                   <Input value={form.actual_value} onChange={e => setForm(f => ({ ...f, actual_value: e.target.value }))} placeholder="Ex: 95 unidades" />
                 </div>
               </div>
-              <Button type="submit" variant="destructive" className="w-full" disabled={createNC.isPending}>Registrar NC</Button>
+              {editingId && (
+                <div className="space-y-2">
+                  <Label>Ação Corretiva</Label>
+                  <Textarea value={form.corrective_action} onChange={e => setForm(f => ({ ...f, corrective_action: e.target.value }))} rows={2} placeholder="Descreva a ação tomada..." />
+                </div>
+              )}
+              <Button type="submit" variant="destructive" className="w-full" disabled={saveNC.isPending}>
+                {editingId ? 'Salvar Alterações' : 'Registrar NC'}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -258,19 +323,14 @@ const NonConformities = () => {
                   </TableCell>
                   <TableCell className="text-xs max-w-[200px] truncate">{nc.description}</TableCell>
                   <TableCell>
-                    {(nc.status === 'aberta' || nc.status === 'em_analise') && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          const action = prompt('Ação corretiva tomada:');
-                          if (action) resolveNC.mutate({ id: nc.id, action });
-                        }}
-                        className="text-success hover:text-success"
-                      >
-                        <CheckCircle className="h-4 w-4" />
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(nc)}>
+                        <Pencil className="h-3.5 w-3.5" />
                       </Button>
-                    )}
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteId(nc.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -278,6 +338,21 @@ const NonConformities = () => {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!deleteId} onOpenChange={open => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir não conformidade?</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteId && deleteNC.mutate(deleteId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
