@@ -73,6 +73,19 @@ const Locations = () => {
     onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
   });
 
+  const deleteLocation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('locations').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['locations'] });
+      toast({ title: 'Endereço excluído!' });
+      setDeleteId(null);
+    },
+    onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
+  });
+
   const closeDialog = () => {
     setDialogOpen(false);
     setEditingId(null);
