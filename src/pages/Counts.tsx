@@ -87,7 +87,7 @@ const Counts = () => {
       if (items.length === 0) throw new Error('Adicione itens à contagem');
       const { data: count, error: cErr } = await supabase
         .from('inventory_counts')
-        .insert({ count_type: countType, performed_by: user!.id })
+        .insert({ count_type: countType, performed_by: user!.id, count_date: countDate })
         .select()
         .single();
       if (cErr) throw cErr;
