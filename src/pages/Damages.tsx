@@ -113,10 +113,16 @@ const Damages = () => {
 
       // Upload photos
       for (const photo of photos) {
-        const ext = photo.name.split('.').pop();
+        const ext = photo.name.split('.').pop() || 'jpg';
         const path = `${damage.id}/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('damage-photos').upload(path, photo);
-        if (upErr) continue;
+        const { error: upErr } = await supabase.storage.from('damage-photos').upload(path, photo, {
+          contentType: photo.type || 'image/jpeg',
+          upsert: false,
+        });
+        if (upErr) {
+          console.error('Upload error:', upErr);
+          continue;
+        }
         const { data: urlData } = supabase.storage.from('damage-photos').getPublicUrl(path);
         await supabase.from('damage_photos').insert({ damage_id: damage.id, photo_url: urlData.publicUrl });
       }
