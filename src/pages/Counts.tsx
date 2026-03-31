@@ -249,7 +249,7 @@ const Counts = () => {
                 <CardTitle className="text-base">Nova Contagem</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex gap-4 flex-wrap">
+                <div className="flex gap-4 flex-wrap items-end">
                   <div>
                     <Label>Tipo</Label>
                     <Select value={countType} onValueChange={setCountType}>
@@ -259,6 +259,11 @@ const Counts = () => {
                         <SelectItem value="mensal">Mensal</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  <div>
+                    <Label>Data da Contagem</Label>
+                    <Input type="date" value={countDate} onChange={e => setCountDate(e.target.value)} className="w-44" />
                   </div>
 
                   <div className="flex gap-2 items-end">
