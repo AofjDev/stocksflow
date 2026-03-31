@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Plus, MapPin, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -17,6 +18,7 @@ const Locations = () => {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
 
   const { data: locations } = useQuery({
@@ -67,6 +69,19 @@ const Locations = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['locations'] });
       toast({ title: 'Status atualizado!' });
+    },
+    onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
+  });
+
+  const deleteLocation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('locations').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['locations'] });
+      toast({ title: 'Endereço excluído!' });
+      setDeleteId(null);
     },
     onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
   });
@@ -136,9 +151,16 @@ const Locations = () => {
                   </Select>
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={saveMutation.isPending}>
-                {editingId ? 'Salvar Alterações' : 'Criar Endereço'}
-              </Button>
+              <div className="flex gap-2">
+                <Button type="submit" className="flex-1" disabled={saveMutation.isPending}>
+                  {editingId ? 'Salvar Alterações' : 'Criar Endereço'}
+                </Button>
+                {editingId && (
+                  <Button type="button" variant="destructive" onClick={() => { closeDialog(); setDeleteId(editingId); }}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </form>
           </DialogContent>
         </Dialog>
@@ -202,6 +224,21 @@ const Locations = () => {
           </div>
         </div>
       )}
+
+      <AlertDialog open={!!deleteId} onOpenChange={open => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir endereço?</AlertDialogTitle>
+            <AlertDialogDescription>Se houver estoque neste endereço, a exclusão poderá falhar.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteId && deleteLocation.mutate(deleteId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

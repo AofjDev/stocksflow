@@ -8,8 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Search, Power } from 'lucide-react';
+import { Plus, Pencil, Search, Power, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -38,6 +39,7 @@ const Products = () => {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState(EMPTY_FORM);
 
@@ -89,6 +91,20 @@ const Products = () => {
       queryClient.invalidateQueries({ queryKey: ['products-all'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
       toast({ title: 'Status atualizado!' });
+    },
+    onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
+  });
+
+  const deleteProduct = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('products').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products-all'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({ title: 'Material excluído!' });
+      setDeleteId(null);
     },
     onError: (err: any) => toast({ title: 'Erro', description: err.message, variant: 'destructive' }),
   });
@@ -240,6 +256,9 @@ const Products = () => {
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toggleActive.mutate({ id: p.id, active: !p.active })}>
                       <Power className={cn("h-3.5 w-3.5", p.active ? "text-success" : "text-muted-foreground")} />
                     </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(p.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -247,6 +266,21 @@ const Products = () => {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!deleteId} onOpenChange={open => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir material?</AlertDialogTitle>
+            <AlertDialogDescription>Este material será removido permanentemente. Se houver registros vinculados (estoque, movimentações), a exclusão poderá falhar.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteId && deleteProduct.mutate(deleteId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

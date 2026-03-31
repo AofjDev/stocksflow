@@ -10,11 +10,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Camera, Plus, Edit2, Image as ImageIcon } from 'lucide-react';
+import { Camera, Plus, Edit2, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseQRCode } from '@/lib/qrcode-parser';
@@ -26,6 +27,7 @@ const Damages = () => {
   const qc = useQueryClient();
   const [showNew, setShowNew] = useState(false);
   const [editItem, setEditItem] = useState<any>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [scannerActive, setScannerActive] = useState(false);
   const scannerRef = useRef<any>(null);
   const [photos, setPhotos] = useState<File[]>([]);
@@ -111,7 +113,6 @@ const Damages = () => {
       }).select().single();
       if (error) throw error;
 
-      // Upload photos
       for (const photo of photos) {
         const ext = photo.name.split('.').pop() || 'jpg';
         const path = `${damage.id}/${crypto.randomUUID()}.${ext}`;
@@ -146,17 +147,33 @@ const Damages = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['damages'] });
+      toast({ title: 'Avaria atualizada!' });
       setEditItem(null);
     },
+    onError: (e: any) => toast({ title: 'Erro', description: e.message, variant: 'destructive' }),
+  });
+
+  const deleteDamage = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('damages').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['damages'] });
+      qc.invalidateQueries({ queryKey: ['damage-photos'] });
+      toast({ title: 'Avaria excluída!' });
+      setDeleteId(null);
+    },
+    onError: (e: any) => toast({ title: 'Erro', description: e.message, variant: 'destructive' }),
   });
 
   const soldDamages = damages?.filter(d => d.sold) || [];
   const unsoldDamages = damages?.filter(d => !d.sold) || [];
 
   const materialColors: Record<string, string> = {
-    PAV: 'bg-blue-500/20 text-blue-700 dark:text-blue-400',
-    PIF: 'bg-orange-500/20 text-orange-700 dark:text-orange-400',
-    OS: 'bg-purple-500/20 text-purple-700 dark:text-purple-400',
+    PAV: 'bg-primary/20 text-primary',
+    PIF: 'bg-warning/20 text-warning',
+    OS: 'bg-accent/20 text-accent-foreground',
   };
 
   const renderDamageRow = (d: any) => {
@@ -172,7 +189,7 @@ const Damages = () => {
         <TableCell className="text-xs font-mono">{format(new Date(d.damage_date + 'T12:00:00'), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
         <TableCell>
           {d.sold ? (
-            <Badge className="bg-green-500/20 text-green-700 dark:text-green-400 text-xs">Vendido - {d.order_number}</Badge>
+            <Badge className="bg-success/20 text-success text-xs">Vendido - {d.order_number}</Badge>
           ) : (
             <Badge variant="outline" className="text-xs">Disponível</Badge>
           )}
@@ -188,9 +205,14 @@ const Damages = () => {
           </div>
         </TableCell>
         <TableCell>
-          <Button size="sm" variant="ghost" onClick={() => setEditItem(d)}>
-            <Edit2 className="h-3.5 w-3.5" />
-          </Button>
+          <div className="flex gap-1">
+            <Button size="sm" variant="ghost" onClick={() => setEditItem(d)}>
+              <Edit2 className="h-3.5 w-3.5" />
+            </Button>
+            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteId(d.id)}>
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </TableCell>
       </TableRow>
     );
@@ -308,7 +330,7 @@ const Damages = () => {
                   <TableHead>Data</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Fotos</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -333,7 +355,7 @@ const Damages = () => {
                   <TableHead>Data</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Fotos</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -352,6 +374,35 @@ const Damages = () => {
           <DialogHeader><DialogTitle>Editar Avaria</DialogTitle></DialogHeader>
           {editItem && (
             <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Quantidade</Label>
+                  <Input type="number" value={editItem.quantity} onChange={e => setEditItem((ei: any) => ({ ...ei, quantity: parseInt(e.target.value) || 0 }))} />
+                </div>
+                <div>
+                  <Label>Tipo Material</Label>
+                  <Select value={editItem.material_type} onValueChange={v => setEditItem((e: any) => ({ ...e, material_type: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PAV">PAV</SelectItem>
+                      <SelectItem value="PIF">PIF</SelectItem>
+                      <SelectItem value="OS">OS</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label>Responsável</Label>
+                <Input value={editItem.responsible} onChange={e => setEditItem((ei: any) => ({ ...ei, responsible: e.target.value }))} />
+              </div>
+              <div>
+                <Label>Data da Avaria</Label>
+                <Input type="date" value={editItem.damage_date} onChange={e => setEditItem((ei: any) => ({ ...ei, damage_date: e.target.value }))} />
+              </div>
+              <div>
+                <Label>Observações</Label>
+                <Textarea value={editItem.notes || ''} onChange={e => setEditItem((ei: any) => ({ ...ei, notes: e.target.value }))} rows={2} />
+              </div>
               <div className="flex items-center gap-3">
                 <Label>Vendido</Label>
                 <Switch checked={editItem.sold} onCheckedChange={v => setEditItem((e: any) => ({ ...e, sold: v }))} />
@@ -362,21 +413,6 @@ const Damages = () => {
                   <Input value={editItem.order_number || ''} onChange={e => setEditItem((ei: any) => ({ ...ei, order_number: e.target.value }))} placeholder="Número do pedido" />
                 </div>
               )}
-              <div>
-                <Label>Tipo Material</Label>
-                <Select value={editItem.material_type} onValueChange={v => setEditItem((e: any) => ({ ...e, material_type: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PAV">PAV</SelectItem>
-                    <SelectItem value="PIF">PIF</SelectItem>
-                    <SelectItem value="OS">OS</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Responsável</Label>
-                <Input value={editItem.responsible} onChange={e => setEditItem((ei: any) => ({ ...ei, responsible: e.target.value }))} />
-              </div>
               <Button onClick={() => {
                 if (editItem.sold && !editItem.order_number) {
                   toast({ title: 'Informe o nº do pedido', variant: 'destructive' });
@@ -388,13 +424,31 @@ const Damages = () => {
                   order_number: editItem.order_number,
                   material_type: editItem.material_type,
                   responsible: editItem.responsible,
+                  quantity: editItem.quantity,
+                  damage_date: editItem.damage_date,
+                  notes: editItem.notes,
                 });
-                toast({ title: 'Avaria atualizada!' });
-              }}>Salvar</Button>
+              }} className="w-full">Salvar</Button>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={open => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir avaria?</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteId && deleteDamage.mutate(deleteId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
