@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Warehouse, LogIn, UserPlus } from 'lucide-react';
+import { lovable } from '@/integrations/lovable/index';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
